@@ -11,7 +11,8 @@
     "start": "node --env-file-if-exists=../../.env dist/server.js",
     "seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "import:osm": "tsx --env-file-if-exists=../../.env src/scripts/import-osm.ts"
   },
   "dependencies": {
     "@checkins/shared": "*",

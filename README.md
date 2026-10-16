@@ -15,7 +15,7 @@ fotos e cardápios.
 | Perfil do usuário no MongoDB (`GET/PATCH /me`) | Pronto |
 | Lugares perto de você (busca por distância) | Pronto, com lugares de exemplo |
 | Socket.IO com login obrigatório | Base pronta (só entra e sai de salas) |
-| Importar lugares do OpenStreetMap | Próximo passo |
+| Importar lugares do OpenStreetMap | Pronto (`npm run import:osm`); São Paulo é a primeira cidade |
 | Check-in e quem está no local agora | A fazer (modelo `Checkin` já existe) |
 | Conversa direta, grupos no local, chat | A fazer |
 | Fotos e cardápios (salvos no disco de casa) | A fazer |
@@ -104,7 +104,8 @@ Copie `.env.example` para `.env` (raiz, usado pela API) e `apps/mobile/.env.exam
 ```bash
 npm install                      # também compila packages/shared
 npm run dev:api                  # API em http://localhost:3000 com recarga automática
-npm run seed -w @checkins/api    # lugares de exemplo (SEED_LAT/SEED_LNG mudam a posição)
+npm run import:osm -w @checkins/api -- "São Paulo"   # lugares reais do OpenStreetMap
+npm run seed -w @checkins/api    # ou só 4 lugares de exemplo (SEED_LAT/SEED_LNG mudam a posição)
 npm run dev:mobile               # leia o QR code com o Expo Go (mesma rede Wi-Fi da máquina)
 ```
 
@@ -147,3 +148,13 @@ o túnel para `http://localhost:3000`. O MongoDB nunca fica exposto.
 
 O `CLAUDE.md` descreve a arquitetura e as regras do projeto: uma funcionalidade por PR, com testes,
 entradas da API validadas pelos schemas de `packages/shared` e textos para o usuário em português.
+
+## Lugares do OpenStreetMap
+
+`npm run import:osm -w @checkins/api -- "<município>"` baixa da Overpass API os bares, pubs,
+restaurantes, lanchonetes, cafés, sorveterias, baladas e academias que têm nome dentro do município,
+e grava tudo no MongoDB de `MONGO_URL`. Rodar de novo atualiza os lugares que já existem (pelo ID do
+OSM) em vez de duplicar, então dá para repetir de tempos em tempos. A mesma cidade inteira de São Paulo
+pode levar alguns minutos; se a Overpass estiver ocupada (erro 429 ou 504), tente mais tarde ou use outro
+servidor com `OVERPASS_URL`. Os dados do OpenStreetMap exigem a atribuição "© OpenStreetMap contributors"
+no app.

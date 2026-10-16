@@ -17,5 +17,9 @@
     "node": ">=22",
     "npm": ">=11"
   },
-  "packageManager": "npm@11.21.1"
+  "packageManager": "npm@11.21.1",
+  "overrides": {
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  }
 }

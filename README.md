@@ -44,7 +44,7 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 
 | Pasta | O que é |
 | --- | --- |
-| `apps/mobile` | App React Native com Expo SDK 58 e Expo Router (TypeScript) |
+| `apps/mobile` | App React Native com Expo SDK 57 e Expo Router (TypeScript) |
 | `apps/mobile/src/app` | Telas: `sign-in.tsx` (login) e `index.tsx` (lugares perto de você) |
 | `apps/mobile/src/auth`, `src/lib` | Contexto de login, Firebase, Google e cliente da API |
 | `apps/api` | API Node.js com Fastify, MongoDB (Mongoose) e Socket.IO |

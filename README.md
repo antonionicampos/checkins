@@ -154,7 +154,7 @@ entradas da API validadas pelos schemas de `packages/shared` e textos para o usu
 `npm run import:osm -w @checkins/api -- "<município>"` baixa da Overpass API os bares, pubs,
 restaurantes, lanchonetes, cafés, sorveterias, baladas e academias que têm nome dentro do município,
 e grava tudo no MongoDB de `MONGO_URL`. Rodar de novo atualiza os lugares que já existem (pelo ID do
-OSM) em vez de duplicar, então dá para repetir de tempos em tempos. A mesma cidade inteira de São Paulo
+OSM) em vez de duplicar, então dá para repetir de tempos em tempos. Baixar São Paulo inteira
 pode levar alguns minutos; se a Overpass estiver ocupada (erro 429 ou 504), tente mais tarde ou use outro
 servidor com `OVERPASS_URL`. Os dados do OpenStreetMap exigem a atribuição "© OpenStreetMap contributors"
 no app.

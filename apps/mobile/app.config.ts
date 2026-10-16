@@ -38,7 +38,8 @@ const config: ExpoConfig = {
     [
       '@react-native-google-signin/google-signin',
       // "Reversed client ID" do cliente iOS no Google Cloud; só é usado no build para iPhone.
-      { iosUrlScheme: process.env.GOOGLE_IOS_URL_SCHEME ?? 'com.googleusercontent.apps.configure-me' },
+      // "||" e não "??": a variável costuma existir vazia no .env.
+      { iosUrlScheme: process.env.GOOGLE_IOS_URL_SCHEME || 'com.googleusercontent.apps.configure-me' },
     ],
   ],
 };

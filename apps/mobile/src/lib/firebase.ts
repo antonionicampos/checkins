@@ -11,8 +11,13 @@ const firebaseConfig = {
 
 export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
 
+// Sem chave, o Firebase derruba o app ao abrir; com um valor provisório, a tela de login abre e avisa.
+const effectiveConfig = isFirebaseConfigured
+  ? firebaseConfig
+  : { ...firebaseConfig, apiKey: 'nao-configurado', projectId: 'nao-configurado' };
+
 // getApps() evita inicializar duas vezes quando o Metro recarrega o código.
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(effectiveConfig);
 
 /** Login guardado no aparelho: a pessoa continua logada ao reabrir o app. */
 export const auth: Auth = initializeAuth(app, {

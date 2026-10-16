@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:8
+        ports:
+          - 27017:27017
+    env:
+      MONGO_URL_TEST: mongodb://localhost:27017/checkins_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm install -g npm@11
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build -w @checkins/api
+      - name: Gera o bundle do app (confere que o Metro compila)
+        run: npx expo export --platform android --output-dir /tmp/expo-export
+        working-directory: apps/mobile

@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      // Os tipos públicos do Firebase não incluem getReactNativePersistence; os do build React Native incluem.
+      "@firebase/auth": ["../../node_modules/@firebase/auth/dist/index.rn.d.ts"]
+    }
+  }
+}

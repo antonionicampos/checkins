@@ -37,7 +37,25 @@ cp apps/mobile/.env.example apps/mobile/.env   # coloque o IP da máquina em EXP
 npm run dev:mobile                              # leia o QR code com o Expo Go
 ```
 
+Login com Google só funciona no build de desenvolvimento (no Expo Go, use e-mail e senha):
+
+```bash
+cd apps/mobile
+npx eas-cli@latest build --profile development --platform android   # instale o APK gerado no celular
+npx expo start --dev-client
+```
+
 Depois de mudar algo em `packages/shared`, rode `npm run build -w @checkins/shared`.
+
+## Configurar o login (Firebase)
+
+1. Crie um projeto em https://console.firebase.google.com (o plano gratuito basta).
+2. Em **Authentication > Método de login**, ative **E-mail/senha** e **Google**.
+3. Em **Configurações do projeto > Seus apps**, adicione um app da **Web** e copie `apiKey`, `authDomain`,
+   `projectId` e `appId` para `apps/mobile/.env`. Coloque o mesmo `projectId` em `FIREBASE_PROJECT_ID` no `.env` da raiz.
+4. Para o Google: copie o "ID do cliente da Web" (em Authentication > Google) para `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`,
+   adicione um app **Android** com o pacote `com.antonionicampos.checkins` e a impressão digital SHA-1 que
+   `npx eas-cli@latest credentials` mostra.
 
 ## Testes e checagens
 

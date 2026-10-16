@@ -1,7 +1,9 @@
 import { distanceInMeters, type Place } from '@checkins/shared';
 import * as Location from 'expo-location';
+import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useAuth } from '../auth/AuthProvider';
 import { API_URL, getHealth, getNearbyPlaces } from '../lib/api';
 
 type State =
@@ -10,7 +12,19 @@ type State =
   | { kind: 'ready'; places: Array<Place & { distance: number }>; apiOk: boolean };
 
 export default function NearbyPlacesScreen() {
+  const { profile, signOut } = useAuth();
   const [state, setState] = useState<State>({ kind: 'loading' });
+  const header = (
+    <Stack.Screen
+      options={{
+        headerRight: () => (
+          <Pressable onPress={signOut} hitSlop={8}>
+            <Text style={styles.headerLink}>Sair</Text>
+          </Pressable>
+        ),
+      }}
+    />
+  );
 
   const load = useCallback(async () => {
     setState({ kind: 'loading' });
@@ -43,6 +57,7 @@ export default function NearbyPlacesScreen() {
   if (state.kind === 'loading') {
     return (
       <View style={styles.center}>
+        {header}
         <ActivityIndicator />
       </View>
     );
@@ -51,6 +66,7 @@ export default function NearbyPlacesScreen() {
   if (state.kind === 'error') {
     return (
       <View style={styles.center}>
+        {header}
         <Text style={styles.message}>{state.message}</Text>
         <Pressable style={styles.button} onPress={load}>
           <Text style={styles.buttonText}>Tentar de novo</Text>
@@ -60,14 +76,19 @@ export default function NearbyPlacesScreen() {
   }
 
   return (
-    <FlatList
+    <>
+      {header}
+      <FlatList
       data={state.places}
       keyExtractor={(p) => p.id}
       contentContainerStyle={styles.list}
       onRefresh={load}
       refreshing={false}
       ListHeaderComponent={
-        state.apiOk ? undefined : <Text style={styles.warning}>A API está no ar, mas o banco de dados não respondeu.</Text>
+        <>
+          {profile && <Text style={styles.greeting}>Olá, {profile.displayName}!</Text>}
+          {!state.apiOk && <Text style={styles.warning}>A API está no ar, mas o banco de dados não respondeu.</Text>}
+        </>
       }
       ListEmptyComponent={<Text style={styles.message}>Nenhum lugar cadastrado por perto ainda.</Text>}
       renderItem={({ item }) => (
@@ -78,7 +99,8 @@ export default function NearbyPlacesScreen() {
           </Text>
         </View>
       )}
-    />
+      />
+    </>
   );
 }
 
@@ -86,6 +108,8 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
   list: { padding: 16, gap: 12 },
   message: { textAlign: 'center', color: '#444' },
+  greeting: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
+  headerLink: { color: '#1f6feb', fontWeight: '600' },
   warning: { color: '#9a5b00', marginBottom: 8 },
   card: { padding: 16, borderRadius: 12, backgroundColor: '#f2f4f7' },
   name: { fontSize: 16, fontWeight: '600' },

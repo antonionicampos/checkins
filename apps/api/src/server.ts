@@ -1,13 +1,16 @@
 import { buildApp } from './app.js';
+import { createFirebaseVerifier } from './auth/firebase.js';
 import { loadConfig } from './config.js';
 import { connectMongo, disconnectMongo } from './db.js';
 import { attachRealtime } from './realtime/socket.js';
 
 const config = loadConfig();
-const app = await buildApp(config);
+const verifyToken = createFirebaseVerifier(config.FIREBASE_PROJECT_ID);
+const app = await buildApp(config, { verifyToken });
+if (!config.FIREBASE_PROJECT_ID) app.log.warn('FIREBASE_PROJECT_ID vazio: rotas com login vão falhar');
 
 await connectMongo(config.MONGO_URL);
-const io = attachRealtime(app.server, config);
+const io = attachRealtime(app.server, config, verifyToken);
 
 await app.listen({ host: config.HOST, port: config.PORT });
 

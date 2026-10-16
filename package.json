@@ -7,7 +7,9 @@
   ],
   "scripts": {
     "postinstall": "npm run build -w @checkins/shared",
+    "predev:api": "npm run build -w @checkins/shared",
     "dev:api": "npm run dev -w @checkins/api",
+    "predev:mobile": "npm run build -w @checkins/shared",
     "dev:mobile": "npm run start -w @checkins/mobile",
     "build": "npm run build --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",

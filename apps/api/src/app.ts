@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import { registerAuth } from './auth/plugin.js';
 import type { VerifyToken } from './auth/identity.js';
 import type { Config } from './config.js';
+import { checkinRoutes } from './routes/checkins.js';
 import { healthRoutes } from './routes/health.js';
 import { meRoutes } from './routes/me.js';
 import { placeRoutes } from './routes/places.js';
@@ -39,6 +40,7 @@ export async function buildApp(
   await app.register(healthRoutes);
   await app.register(placeRoutes);
   await app.register(meRoutes);
+  await app.register(checkinRoutes);
 
   return app;
 }

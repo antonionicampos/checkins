@@ -16,7 +16,7 @@ fotos e cardápios.
 | Lugares perto de você (busca por distância) | Pronto, com lugares de exemplo |
 | Socket.IO com login obrigatório | Base pronta (só entra e sai de salas) |
 | Importar lugares do OpenStreetMap | Pronto (`npm run import:osm`); São Paulo é a primeira cidade |
-| Check-in e quem está no local agora | A fazer (modelo `Checkin` já existe) |
+| Check-in com comentário e nota, quem está no local agora | Pronto (API e tela do lugar no app) |
 | Conversa direta, grupos no local, chat | A fazer |
 | Fotos e cardápios (salvos no disco de casa) | A fazer |
 | Denúncia/moderação e notificações push | A fazer |
@@ -37,15 +37,16 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 
 - O app faz login no Firebase e manda o ID token em toda chamada. A API valida o token com
   firebase-admin (só precisa do `FIREBASE_PROJECT_ID`) e guarda o perfil no MongoDB, ligado ao `firebaseUid`.
-- Localizações ficam em GeoJSON com índice `2dsphere`. Check-in e criação de grupo vão exigir estar
-  a até 100 m do lugar, e a presença dura 3 horas (constantes em `packages/shared`).
+- Localizações ficam em GeoJSON com índice `2dsphere`. Check-in (e, depois, criação de grupo) exige estar
+  a até 100 m do lugar, conferido no servidor, e a presença dura 3 horas (constantes em `packages/shared`).
+- Só quem está no local vê a lista de quem mais está ali. Quem faz check-in pode escolher não aparecer nela.
 
 ## Estrutura
 
 | Pasta | O que é |
 | --- | --- |
 | `apps/mobile` | App React Native com Expo SDK 57 e Expo Router (TypeScript) |
-| `apps/mobile/src/app` | Telas: `sign-in.tsx` (login) e `index.tsx` (lugares perto de você) |
+| `apps/mobile/src/app` | Telas: `sign-in.tsx` (login), `index.tsx` (lugares perto de você) e `place/[id].tsx` (lugar e check-in) |
 | `apps/mobile/src/auth`, `src/lib` | Contexto de login, Firebase, Google e cliente da API |
 | `apps/api` | API Node.js com Fastify, MongoDB (Mongoose) e Socket.IO |
 | `apps/api/src/routes` | Rotas e seus testes |
@@ -63,6 +64,10 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `GET /places/:placeId` | Não | Um lugar |
 | `GET /me` | Sim | Perfil de quem está logado; cria o perfil no primeiro acesso |
 | `PATCH /me` | Sim | Muda o nome exibido (`{ "displayName": "..." }`) |
+| `POST /places/:placeId/checkins` | Sim | Check-in (`{ position: { lat, lng }, comment?, rating?, visible? }`); 422 se estiver a mais de 100 m. Encerra a presença anterior |
+| `DELETE /me/presence` | Sim | Sai do local antes das 3 horas |
+| `GET /places/:placeId/presence` | Sim | Se você está no local e, só nesse caso, quem mais está ali agora |
+| `GET /places/:placeId/checkins` | Sim | Últimos comentários e notas do lugar, com a média |
 
 O Socket.IO exige o token na conexão: `io(url, { auth: { token } })`.
 
@@ -118,7 +123,9 @@ npx eas-cli@latest build --profile development --platform android   # instale o 
 npx expo start --dev-client
 ```
 
-Depois de mudar algo em `packages/shared`, rode `npm run build -w @checkins/shared`.
+`npm run dev:api` e `npm run dev:mobile` recompilam `packages/shared` antes de subir. Se usar outro comando
+(como `npx expo start` dentro de `apps/mobile`) depois de um `git pull` ou de mudar algo em `packages/shared`,
+rode antes `npm run build -w @checkins/shared`.
 
 ## Testes e checagens
 

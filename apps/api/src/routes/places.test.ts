@@ -4,7 +4,7 @@ import { connectMongo, disconnectMongo } from '../db.js';
 import { PlaceModel } from '../models/place.js';
 import { buildTestApp, TEST_MONGO_URL } from '../test/setup.js';
 
-// Precisa de um MongoDB de verdade: `docker compose up -d mongo` e MONGO_URL_TEST no ambiente.
+// Precisa de um MongoDB de verdade: MONGO_URL_TEST no ambiente (veja .env.example).
 describe.skipIf(!TEST_MONGO_URL)('rotas de lugares', async () => {
   const app = await buildTestApp();
   const center = { lat: -23.5614, lng: -46.6559 };

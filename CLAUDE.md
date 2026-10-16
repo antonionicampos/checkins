@@ -21,7 +21,9 @@ ou sem prazo), perfil com fotos de lugares, cardápio em foto/PDF. Foco em socia
   conferido no servidor; presença dura `CHECKIN_PRESENCE_HOURS`.
 - Rotas que exigem login usam `app.requireAuth` (preHandler); o Socket.IO exige o token em `auth.token`.
 - Tempo real com Socket.IO na própria API (`apps/api/src/realtime`), uma sala por lugar/grupo.
-- Backend roda em Docker Compose numa máquina em casa, exposto só pelo Cloudflare Tunnel.
+- Sem Docker. A API roda com Node direto numa máquina em casa, exposta só pelo Cloudflare Tunnel.
+  MongoDB: em desenvolvimento, a instância já instalada na máquina; em produção, um servidor na rede local
+  (sempre via `MONGO_URL`).
 
 ## Regras
 
@@ -34,4 +36,4 @@ ou sem prazo), perfil com fotos de lugares, cardápio em foto/PDF. Foco em socia
 - Firebase só para login (Auth: e-mail/senha e Google). O app manda o ID token em `Authorization: Bearer`;
   a API valida com firebase-admin (`apps/api/src/auth`) e guarda o perfil no MongoDB (`User.firebaseUid`).
   Dados, mídia e tempo real ficam na API em casa; não use Firestore, Storage nem Supabase.
-- Fotos e cardápios: disco da máquina de casa (volume do Docker), servidos pela API.
+- Fotos e cardápios: disco da máquina de casa (pasta configurável), servidos pela API.

@@ -12,20 +12,18 @@ ver quem está ali, puxar conversa, grupos abertos no estabelecimento, fotos e c
 | `apps/mobile` | App React Native com Expo (Expo Router, TypeScript) |
 | `apps/api` | API Node.js com Fastify, MongoDB (Mongoose) e Socket.IO |
 | `packages/shared` | Tipos, validações (zod) e constantes usados pelo app e pela API |
-| `docker-compose.yml` | API + MongoDB (+ Cloudflare Tunnel opcional) para a máquina de casa |
 
 ## Requisitos
 
 - Node.js 22 e **npm 11** (`npm install -g npm@11`; o npm 10 falha ao instalar este monorepo)
-- Docker com Docker Compose
+- MongoDB acessível pela máquina (a instância local em desenvolvimento; um servidor da rede em produção)
 - Expo Go no celular para testar o app
 
 ## Rodando em desenvolvimento
 
 ```bash
-cp .env.example .env
+cp .env.example .env            # ajuste MONGO_URL para o seu MongoDB
 npm install                      # também compila packages/shared
-docker compose up -d mongo       # só o banco
 npm run dev:api                  # API em http://localhost:3000 com recarga automática
 npm run seed -w @checkins/api    # lugares de exemplo (SEED_LAT/SEED_LNG para mudar a posição)
 ```
@@ -65,14 +63,17 @@ npm test                                   # testes que precisam do banco são p
 MONGO_URL_TEST=mongodb://localhost:27017/checkins_test npm test -w @checkins/api
 ```
 
-O CI (GitHub Actions) roda typecheck, testes com MongoDB, build da API e o bundle do app.
+O CI (GitHub Actions) roda typecheck, testes com um MongoDB próprio do GitHub, build da API e o bundle do app.
 
 ## Servidor em casa
 
 ```bash
-docker compose up -d --build                  # API + MongoDB, reiniciam sozinhos
-docker compose --profile tunnel up -d         # também publica a API pelo Cloudflare Tunnel
+npm ci
+npm run build -w @checkins/shared && npm run build -w @checkins/api
+npm start -w @checkins/api        # lê o .env da raiz
 ```
 
-O MongoDB só escuta em `127.0.0.1`. A API fica na porta 3000 da rede local (para o Expo Go) e,
-com o perfil `tunnel`, no domínio configurado no Cloudflare (`CLOUDFLARE_TUNNEL_TOKEN` no `.env`).
+Em produção, `MONGO_URL` aponta para o servidor MongoDB da rede local. Para a API reiniciar sozinha
+e subir com a máquina, use um gerenciador de processos (por exemplo, `npx pm2 start npm --name checkins-api -- start -w @checkins/api`
+e `pm2 save`). Para publicar a API na internet, instale o `cloudflared` como serviço e aponte o túnel
+para `http://localhost:3000`; o MongoDB nunca fica exposto.

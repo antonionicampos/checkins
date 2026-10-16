@@ -1,4 +1,5 @@
 import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+import { NativeModules, TurboModuleRegistry } from 'react-native';
 import { auth } from './firebase';
 
 type GoogleSigninModule = typeof import('@react-native-google-signin/google-signin');
@@ -12,6 +13,13 @@ let cachedModule: GoogleSigninModule | null | undefined;
  */
 function loadGoogleSignin(): GoogleSigninModule | null {
   if (cachedModule === undefined) {
+    // Confere antes de importar: o import em si já dispara um erro no Expo Go, mesmo dentro do try.
+    const hasNativeModule =
+      TurboModuleRegistry.get('RNGoogleSignin') != null || NativeModules.RNGoogleSignin != null;
+    if (!hasNativeModule) {
+      cachedModule = null;
+      return cachedModule;
+    }
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       cachedModule = require('@react-native-google-signin/google-signin') as GoogleSigninModule;

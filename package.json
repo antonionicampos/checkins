@@ -1,0 +1,21 @@
+{
+  "name": "checkins",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "postinstall": "npm run build -w @checkins/shared",
+    "dev:api": "npm run dev -w @checkins/api",
+    "dev:mobile": "npm run start -w @checkins/mobile",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22",
+    "npm": ">=11"
+  },
+  "packageManager": "npm@11.21.1"
+}

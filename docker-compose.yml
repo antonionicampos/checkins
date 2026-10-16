@@ -1,0 +1,56 @@
+# Sobe o backend inteiro na máquina de casa: docker compose up -d
+# O MongoDB só escuta em 127.0.0.1; o acesso de fora passa pelo túnel (perfil "tunnel").
+name: checkins
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      MONGO_URL: mongodb://mongo:27017/checkins
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    ports:
+      # Exposta na rede local para testar com Expo Go no celular.
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "127.0.0.1:27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Armazenamento de fotos e cardápios entra junto com essa funcionalidade.
+
+  # Publica a API na internet com HTTPS, sem abrir portas no roteador.
+  # Ative com: docker compose --profile tunnel up -d (precisa de CLOUDFLARE_TUNNEL_TOKEN).
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - api
+
+volumes:
+  mongo-data:

@@ -19,6 +19,7 @@ function RootNavigator() {
     <Stack screenOptions={{ headerTitleAlign: 'center' }}>
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="index" options={{ title: 'Lugares perto de você' }} />
+        <Stack.Screen name="place/[id]" options={{ title: '' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="sign-in" options={{ headerShown: false }} />

@@ -13,3 +13,13 @@ export const PLACE_CATEGORIES = [
   'balada',
   'outro',
 ] as const;
+
+/** Nome de cada categoria para mostrar ao usuário. */
+export const PLACE_CATEGORY_LABELS: Record<(typeof PLACE_CATEGORIES)[number], string> = {
+  bar: 'Bar',
+  restaurante: 'Restaurante',
+  cafe: 'Café',
+  academia: 'Academia',
+  balada: 'Balada',
+  outro: 'Outro',
+};

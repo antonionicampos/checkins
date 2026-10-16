@@ -1,4 +1,14 @@
-import type { HealthResponse, Place, PlaceCategory, UpdateMeInput, User } from '@checkins/shared';
+import type {
+  Checkin,
+  CreateCheckinInput,
+  HealthResponse,
+  Place,
+  PlaceCategory,
+  PlaceReviewsResponse,
+  PresenceResponse,
+  UpdateMeInput,
+  User,
+} from '@checkins/shared';
 import { auth } from './firebase';
 
 /**
@@ -55,4 +65,29 @@ export function getMe() {
 
 export function updateMe(input: UpdateMeInput) {
   return request<User>('/me', { method: 'PATCH', body: JSON.stringify(input) });
+}
+
+export function getPlace(placeId: string) {
+  return request<Place>(`/places/${placeId}`);
+}
+
+export function createCheckin(placeId: string, input: CreateCheckinInput) {
+  return request<Checkin>(`/places/${placeId}/checkins`, { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function getPresence(placeId: string) {
+  return request<PresenceResponse>(`/places/${placeId}/presence`);
+}
+
+export function getPlaceReviews(placeId: string) {
+  return request<PlaceReviewsResponse>(`/places/${placeId}/checkins`);
+}
+
+export async function leavePlace() {
+  const token = await auth.currentUser?.getIdToken();
+  const res = await fetch(`${API_URL}/me/presence`, {
+    method: 'DELETE',
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new ApiError(res.status, `A API respondeu ${res.status}`);
 }

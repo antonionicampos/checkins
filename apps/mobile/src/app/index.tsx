@@ -1,10 +1,10 @@
-import { distanceInMeters, type Place } from '@checkins/shared';
-import * as Location from 'expo-location';
-import { Stack } from 'expo-router';
+import { distanceInMeters, PLACE_CATEGORY_LABELS, type Place } from '@checkins/shared';
+import { Link, Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '../auth/AuthProvider';
 import { API_URL, getHealth, getNearbyPlaces } from '../lib/api';
+import { getCurrentPosition, LocationPermissionError } from '../lib/location';
 
 type State =
   | { kind: 'loading' }
@@ -29,13 +29,7 @@ export default function NearbyPlacesScreen() {
   const load = useCallback(async () => {
     setState({ kind: 'loading' });
     try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setState({ kind: 'error', message: 'Precisamos da sua localização para mostrar lugares por perto.' });
-        return;
-      }
-      const { coords } = await Location.getCurrentPositionAsync({});
-      const here = { lat: coords.latitude, lng: coords.longitude };
+      const here = await getCurrentPosition();
       const [health, { places }] = await Promise.all([getHealth(), getNearbyPlaces(here)]);
       setState({
         kind: 'ready',
@@ -45,7 +39,10 @@ export default function NearbyPlacesScreen() {
     } catch (err) {
       setState({
         kind: 'error',
-        message: `Não consegui falar com a API em ${API_URL}. ${(err as Error).message}`,
+        message:
+          err instanceof LocationPermissionError
+            ? err.message
+            : `Não consegui falar com a API em ${API_URL}. ${(err as Error).message}`,
       });
     }
   }, []);
@@ -91,13 +88,16 @@ export default function NearbyPlacesScreen() {
         </>
       }
       ListEmptyComponent={<Text style={styles.message}>Nenhum lugar cadastrado por perto ainda.</Text>}
+      ListFooterComponent={<Text style={styles.attribution}>Dados de lugares © OpenStreetMap contributors</Text>}
       renderItem={({ item }) => (
-        <View style={styles.card}>
-          <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.meta}>
-            {item.category} · {Math.round(item.distance)} m
-          </Text>
-        </View>
+        <Link href={{ pathname: '/place/[id]', params: { id: item.id, name: item.name } }} asChild>
+          <Pressable style={styles.card}>
+            <Text style={styles.name}>{item.name}</Text>
+            <Text style={styles.meta}>
+              {PLACE_CATEGORY_LABELS[item.category]} · {Math.round(item.distance)} m
+            </Text>
+          </Pressable>
+        </Link>
       )}
       />
     </>
@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
   card: { padding: 16, borderRadius: 12, backgroundColor: '#f2f4f7' },
   name: { fontSize: 16, fontWeight: '600' },
   meta: { marginTop: 4, color: '#666' },
+  attribution: { textAlign: 'center', color: '#888', fontSize: 12, marginTop: 8 },
   button: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, backgroundColor: '#1f6feb' },
   buttonText: { color: '#fff', fontWeight: '600' },
 });

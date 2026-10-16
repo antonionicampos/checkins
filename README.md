@@ -123,7 +123,9 @@ npx eas-cli@latest build --profile development --platform android   # instale o 
 npx expo start --dev-client
 ```
 
-Depois de mudar algo em `packages/shared`, rode `npm run build -w @checkins/shared`.
+`npm run dev:api` e `npm run dev:mobile` recompilam `packages/shared` antes de subir. Se usar outro comando
+(como `npx expo start` dentro de `apps/mobile`) depois de um `git pull` ou de mudar algo em `packages/shared`,
+rode antes `npm run build -w @checkins/shared`.
 
 ## Testes e checagens
 

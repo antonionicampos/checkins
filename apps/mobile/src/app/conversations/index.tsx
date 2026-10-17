@@ -1,18 +1,22 @@
-import { REALTIME_EVENTS, type Conversation } from '@checkins/shared';
+import { GROUP_EVENTS, REALTIME_EVENTS, type Conversation, type Group } from '@checkins/shared';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { answerConversation, getConversations } from '../../lib/api';
+import { answerConversation, getConversations, getMyGroups } from '../../lib/api';
+import { expiryLabel } from '../../lib/groups';
 import { useRealtime, useRealtimeReconnect } from '../../lib/realtime';
 
 export default function ConversationsScreen() {
   const [conversations, setConversations] = useState<Conversation[] | null>(null);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      setConversations((await getConversations()).conversations);
+      const [convs, mine] = await Promise.all([getConversations(), getMyGroups()]);
+      setConversations(convs.conversations);
+      setGroups(mine.groups);
       setError(null);
     } catch (err) {
       setError((err as Error).message);
@@ -27,6 +31,7 @@ export default function ConversationsScreen() {
   );
   useRealtime(REALTIME_EVENTS.conversationUpdated, () => void load());
   useRealtime(REALTIME_EVENTS.messageNew, () => void load());
+  useRealtime(GROUP_EVENTS.updated, () => void load());
   useRealtimeReconnect(() => void load());
 
   async function answer(id: string, action: 'accept' | 'decline') {
@@ -62,7 +67,30 @@ export default function ConversationsScreen() {
           }}
         />
       }
-      ListHeaderComponent={error ? <Text style={styles.error}>{error}</Text> : null}
+      ListHeaderComponent={
+        <View style={styles.headerBlock}>
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <Text style={styles.sectionTitle}>Meus grupos</Text>
+          {groups.length === 0 ? (
+            <Text style={styles.muted}>Você não está em nenhum grupo. Entre ou crie um na página de um lugar.</Text>
+          ) : (
+            groups.map((g) => (
+              <Pressable
+                key={g.id}
+                style={styles.card}
+                onPress={() => router.push({ pathname: '/groups/[id]', params: { id: g.id } })}
+              >
+                <Text style={styles.name}>{g.name}</Text>
+                <Text style={styles.muted}>
+                  {g.place.name} · {g.memberCount} {g.memberCount === 1 ? 'pessoa' : 'pessoas'} ·{' '}
+                  {expiryLabel(g.expiresAt)}
+                </Text>
+              </Pressable>
+            ))
+          )}
+          <Text style={styles.sectionTitle}>Conversas</Text>
+        </View>
+      }
       ListEmptyComponent={
         <Text style={styles.muted}>
           Nenhuma conversa ainda. Faça check-in num lugar e puxe conversa com quem está lá.
@@ -111,6 +139,8 @@ export default function ConversationsScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   list: { padding: 16, gap: 12 },
+  headerBlock: { gap: 12 },
+  sectionTitle: { fontSize: 18, fontWeight: '600' },
   card: { padding: 14, borderRadius: 10, backgroundColor: '#f2f4f7', gap: 4 },
   name: { fontSize: 16, fontWeight: '600' },
   muted: { color: '#666' },

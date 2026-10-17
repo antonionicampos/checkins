@@ -18,7 +18,7 @@ fotos e cardápios.
 | Importar lugares do OpenStreetMap | Pronto (`npm run import:osm`); São Paulo é a primeira cidade |
 | Check-in com comentário e nota, quem está no local agora | Pronto (API e tela do lugar no app) |
 | Conversa direta com quem está no local (após aceite) | Pronto (API, lista de conversas e chat no app) |
-| Grupos no local e chat do grupo | A fazer |
+| Grupos no local e chat do grupo | Pronto (criar no local, entrar com check-in, administrador, temporário ou sem prazo) |
 | Fotos e cardápios (salvos no disco de casa) | A fazer |
 | Denúncia/moderação e notificações push | A fazer |
 
@@ -43,17 +43,22 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 - Só quem está no local vê a lista de quem mais está ali. Quem faz check-in pode escolher não aparecer nela.
 - Conversa direta: quem está no local convida alguém da lista; as mensagens só começam depois que a outra
   pessoa aceita. A conversa continua depois que as duas saem do lugar. Convite recusado não pode ser refeito.
+- Grupos: só cria quem está a até o raio do lugar (posição conferida no servidor) e quem cria administra.
+  Qualquer pessoa vê os grupos do lugar; para entrar, precisa de check-in ativo ali. Depois de entrar, continua
+  no grupo mesmo saindo do lugar. O grupo pode durar 2, 4, 8 ou 24 horas (um índice TTL do MongoDB apaga o
+  grupo e as mensagens quando vence) ou não ter prazo. O administrador remove pessoas (que não podem voltar)
+  e encerra o grupo.
 
 ## Estrutura
 
 | Pasta | O que é |
 | --- | --- |
 | `apps/mobile` | App React Native com Expo SDK 57 e Expo Router (TypeScript) |
-| `apps/mobile/src/app` | Telas: `sign-in.tsx` (login), `index.tsx` (lugares perto de você) e `place/[id].tsx` (lugar e check-in) e `conversations/` (convites e chat) |
+| `apps/mobile/src/app` | Telas: `sign-in.tsx` (login), `index.tsx` (lugares perto de você) e `place/[id].tsx` (lugar e check-in) e `conversations/` (convites, grupos e chat) e `groups/` (criar grupo, chat e membros) |
 | `apps/mobile/src/auth`, `src/lib` | Contexto de login, Firebase, Google e cliente da API |
 | `apps/api` | API Node.js com Fastify, MongoDB (Mongoose) e Socket.IO |
 | `apps/api/src/routes` | Rotas e seus testes |
-| `apps/api/src/models` | `Place`, `Checkin`, `User`, `Conversation` e `Message` |
+| `apps/api/src/models` | `Place`, `Checkin`, `User`, `Conversation`, `Message`, `Group` e `GroupMessage` |
 | `apps/api/src/auth` | Validação do token do Firebase e `requireAuth` |
 | `apps/api/src/realtime` | Socket.IO |
 | `packages/shared` | Tipos, validações (zod) e constantes usados pelo app e pela API |
@@ -77,9 +82,17 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `POST /conversations/:id/accept` e `/decline` | Sim | Responde a um convite recebido |
 | `GET /conversations/:id/messages?before=` | Sim | Mensagens, da mais antiga para a mais nova (50 por vez) |
 | `POST /conversations/:id/messages` | Sim | Manda mensagem (`{ text }`), só depois do aceite |
+| `POST /places/:placeId/groups` | Sim | Cria grupo (`{ position, name, description?, durationHours? }`); 422 se estiver longe |
+| `GET /places/:placeId/groups` | Sim | Grupos ativos do lugar |
+| `GET /me/groups` | Sim | Grupos de que participo |
+| `GET /groups/:id` | Sim | Um grupo, com os membros |
+| `POST /groups/:id/join` e `/leave` | Sim | Entra (exige check-in no lugar) ou sai do grupo |
+| `DELETE /groups/:id/members/:userId` | Sim | O administrador remove alguém |
+| `DELETE /groups/:id` | Sim | O administrador encerra o grupo |
+| `GET` e `POST /groups/:id/messages` | Sim | Mensagens do grupo, só para membros |
 
 O Socket.IO exige o token na conexão: `io(url, { auth: { token } })`. Cada pessoa entra na sua sala ao conectar e
-recebe `conversation:updated` (convite novo ou respondido) e `message:new`.
+recebe `conversation:updated` (convite novo ou respondido), `message:new`, `group:message` e `group:updated`.
 
 ## Requisitos
 

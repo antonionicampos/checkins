@@ -1,6 +1,10 @@
 import type {
   Checkin,
   Conversation,
+  CreateGroupInput,
+  Group,
+  GroupDetail,
+  GroupMessage,
   Message,
   CreateCheckinInput,
   HealthResponse,
@@ -121,4 +125,57 @@ export function sendMessage(conversationId: string, text: string) {
     method: 'POST',
     body: JSON.stringify({ text }),
   });
+}
+
+export function getPlaceGroups(placeId: string) {
+  return request<{ groups: Group[] }>(`/places/${placeId}/groups`);
+}
+
+export function createGroup(placeId: string, input: CreateGroupInput) {
+  return request<Group>(`/places/${placeId}/groups`, { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function getMyGroups() {
+  return request<{ groups: Group[] }>('/me/groups');
+}
+
+export function getGroup(groupId: string) {
+  return request<GroupDetail>(`/groups/${groupId}`);
+}
+
+export function joinGroup(groupId: string) {
+  return request<Group>(`/groups/${groupId}/join`, { method: 'POST' });
+}
+
+/** Chamadas que respondem 204 (sem corpo). */
+async function requestNoContent(path: string, method: string) {
+  const token = await auth.currentUser?.getIdToken();
+  const res = await fetch(`${API_URL}${path}`, {
+    method,
+    headers: token ? { authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new ApiError(res.status, body.error ?? `A API respondeu ${res.status}`);
+  }
+}
+
+export function leaveGroup(groupId: string) {
+  return requestNoContent(`/groups/${groupId}/leave`, 'POST');
+}
+
+export function removeGroupMember(groupId: string, userId: string) {
+  return requestNoContent(`/groups/${groupId}/members/${userId}`, 'DELETE');
+}
+
+export function closeGroup(groupId: string) {
+  return requestNoContent(`/groups/${groupId}`, 'DELETE');
+}
+
+export function getGroupMessages(groupId: string) {
+  return request<{ messages: GroupMessage[] }>(`/groups/${groupId}/messages`);
+}
+
+export function sendGroupMessage(groupId: string, text: string) {
+  return request<GroupMessage>(`/groups/${groupId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
 }

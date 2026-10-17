@@ -44,6 +44,8 @@ const config: ExpoConfig = {
         cameraPermission: 'Usamos a câmera para você fotografar o cardápio de um lugar.',
       },
     ],
+    // Android usa o Google Maps no build de desenvolvimento; a chave é do Google Cloud (Maps SDK for Android).
+    ['react-native-maps', { androidGoogleMapsApiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY || undefined }],
     ['expo-notifications', { color: '#1f6feb' }],
     [
       '@react-native-google-signin/google-signin',

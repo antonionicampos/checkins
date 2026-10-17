@@ -23,6 +23,7 @@ fotos e cardápios.
 | Perfil com fotos dos lugares | Pronto (fotos postadas com check-in, "sobre mim", números de check-ins e lugares) |
 | Recomendar um lugar a amigos | Pronto (para contatos do app, como cartão no chat, ou fora do app pelo compartilhar do celular) |
 | Denúncia, bloqueio e moderação | Pronto (moderação pelo terminal com `npm run moderation`) |
+| Mapa e busca de lugares por nome e categoria | Pronto (lista ou mapa, "Buscar nesta área"); no Android, o build de desenvolvimento precisa da chave do Google Maps |
 | Notificações push | Pronto (convites, aceite, mensagens e grupos); precisa do build de desenvolvimento e do projeto no EAS |
 
 Decisões já tomadas: Firebase só para login; dados na API em casa com MongoDB (sem Docker);
@@ -82,7 +83,7 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | Rota | Login | O que faz |
 | --- | --- | --- |
 | `GET /health` | Não | Estado da API e do MongoDB (503 se o banco cair) |
-| `GET /places/nearby?lat=&lng=&radius=&category=` | Não | Lugares no raio (50 a 5000 m, padrão 1000), do mais perto ao mais longe |
+| `GET /places/nearby?lat=&lng=&radius=&category=&q=` | Não | Lugares no raio (50 a 5000 m, padrão 1000), do mais perto ao mais longe; `q` busca no nome sem diferenciar maiúsculas nem acentos |
 | `GET /places/:placeId` | Não | Um lugar |
 | `GET /me` | Sim | Perfil de quem está logado; cria o perfil no primeiro acesso |
 | `PATCH /me` | Sim | Muda o nome exibido e o "sobre mim" (`{ "displayName", "bio" }`, os dois opcionais) |
@@ -149,6 +150,7 @@ Copie `.env.example` para `.env` (raiz, usado pela API) e `apps/mobile/.env.exam
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | `apps/mobile/.env` | Cliente OAuth "Web" do Google, para o login com Google |
 | `GOOGLE_IOS_URL_SCHEME` | `apps/mobile/.env` | Só para iPhone: "reversed client ID" do cliente iOS |
 | `EXPO_PUBLIC_EAS_PROJECT_ID` | `apps/mobile/.env` | ID do projeto no EAS, para receber notificações push |
+| `GOOGLE_MAPS_ANDROID_API_KEY` | `apps/mobile/.env` | Chave do Google Maps para o mapa no build de desenvolvimento do Android |
 
 ### Configurar o login (Firebase)
 
@@ -159,6 +161,16 @@ Copie `.env.example` para `.env` (raiz, usado pela API) e `apps/mobile/.env.exam
 4. Para o Google, copie o "ID do cliente da Web" (em Authentication > Google) para `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`.
    Depois adicione um app **Android** com o pacote `com.antonionicampos.checkins` e a impressão digital SHA-1
    que `npx eas-cli@latest credentials` mostra.
+
+### Configurar o mapa
+
+No Expo Go e no iPhone (Apple Maps) o mapa funciona sem configurar nada. No build de desenvolvimento do Android,
+o mapa usa o Google Maps e precisa de uma chave:
+
+1. No Google Cloud, no mesmo projeto do Firebase, ative **Maps SDK for Android** (a faixa gratuita basta).
+2. Em **APIs e serviços > Credenciais**, crie uma chave de API e restrinja ao app Android
+   `com.antonionicampos.checkins`, com a mesma impressão digital SHA-1 do login com Google.
+3. Coloque a chave em `GOOGLE_MAPS_ANDROID_API_KEY` no `apps/mobile/.env` e gere um novo build de desenvolvimento.
 
 ### Configurar as notificações push
 

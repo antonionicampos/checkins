@@ -19,5 +19,7 @@ export type Place = z.infer<typeof placeSchema>;
 export const nearbyPlacesQuerySchema = latLngSchema.extend({
   radius: z.coerce.number().int().min(50).max(5_000).default(1_000),
   category: placeCategorySchema.optional(),
+  /** Parte do nome do lugar; não diferencia maiúsculas nem acentos. */
+  q: z.string().trim().max(60).optional(),
 });
 export type NearbyPlacesQuery = z.infer<typeof nearbyPlacesQuerySchema>;

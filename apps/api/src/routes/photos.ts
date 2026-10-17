@@ -13,7 +13,7 @@ import { deleteMedia, detectFileType, saveMedia } from '../media/storage.js';
 import { CheckinModel, toAuthorDto } from '../models/checkin.js';
 import { PhotoModel, type PhotoDoc } from '../models/photo.js';
 import { PlaceModel } from '../models/place.js';
-import { findOrCreateUser, UserModel, type UserDoc } from '../models/user.js';
+import { blockedEitherWay, findOrCreateUser, UserModel, type UserDoc } from '../models/user.js';
 
 const FOLDER = 'photos';
 const placeParamsSchema = z.object({ placeId: z.string() });
@@ -53,7 +53,8 @@ async function toPhotoList(docs: PhotoDoc[], me: UserDoc): Promise<Photo[]> {
 
 async function listPhotos(filter: { placeId: string } | { userId: string }, query: unknown, me: UserDoc) {
   const { before, limit } = photosQuerySchema.parse(query);
-  const docs = await PhotoModel.find({ ...filter, ...(before ? { createdAt: { $lt: new Date(before) } } : {}) })
+  const blocked = [...(await blockedEitherWay(me))];
+  const docs = await PhotoModel.find({ ...filter, $and: [{ userId: { $nin: blocked } }], ...(before ? { createdAt: { $lt: new Date(before) } } : {}) })
     .sort({ createdAt: -1 })
     .limit(limit);
   return { photos: await toPhotoList(docs, me) };

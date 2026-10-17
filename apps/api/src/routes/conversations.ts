@@ -19,7 +19,8 @@ import {
   type ConversationDoc,
 } from '../models/conversation.js';
 import { PlaceModel } from '../models/place.js';
-import { findOrCreateUser, UserModel, type UserDoc } from '../models/user.js';
+import { assertMessageRate } from '../moderation/rate-limit.js';
+import { blockedEitherWay, findOrCreateUser, UserModel, type UserDoc } from '../models/user.js';
 
 const conversationParamsSchema = z.object({ conversationId: z.string() });
 const placeParamsSchema = z.object({ placeId: z.string() });
@@ -92,6 +93,10 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(404).send({ error: 'Pessoa ou lugar não encontrado' });
     }
 
+    if ((await blockedEitherWay(me)).has(input.userId)) {
+      return reply.code(403).send({ error: 'Não é possível conversar com essa pessoa' });
+    }
+
     const now = new Date();
     const [myPresence, theirPresence] = await Promise.all([
       CheckinModel.exists({ userId: me._id, placeId: input.placeId, presenceUntil: { $gt: now } }),
@@ -126,10 +131,13 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
   /** Minhas conversas e convites, das mais recentes para as mais antigas. Recusadas não aparecem. */
   app.get('/conversations', async (req) => {
     const me = await findOrCreateUser(req.identity!);
+    const blocked = await blockedEitherWay(me);
     const docs = await ConversationModel.find({ participants: me._id, status: { $ne: 'declined' } })
       .sort({ updatedAt: -1 })
       .limit(100);
-    return { conversations: await Promise.all(docs.map((d) => toConversationDto(d, me))) };
+    // Conversas com quem está bloqueado (por mim ou por ela) somem da lista.
+    const visible = docs.filter((d) => !d.participants.some((p) => blocked.has(String(p))));
+    return { conversations: await Promise.all(visible.map((d) => toConversationDto(d, me))) };
   });
 
   app.get('/conversations/:conversationId', async (req, reply) => {
@@ -187,6 +195,11 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
     if (doc.status !== 'accepted') {
       return reply.code(403).send({ error: 'A conversa começa quando a outra pessoa aceitar o convite' });
     }
+    const blocked = await blockedEitherWay(me);
+    if (doc.participants.some((p) => blocked.has(String(p)))) {
+      return reply.code(403).send({ error: 'Não é possível conversar com essa pessoa' });
+    }
+    await assertMessageRate(me._id);
 
     const dto = await postMessage(doc, me, text);
     return reply.code(201).send(dto);
@@ -195,7 +208,9 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
   /** Contatos: pessoas com quem tenho conversa aceita, das conversas mais recentes para as mais antigas. */
   app.get('/me/contacts', async (req) => {
     const me = await findOrCreateUser(req.identity!);
-    const docs = await ConversationModel.find({ participants: me._id, status: 'accepted' }).sort({ updatedAt: -1 }).limit(200);
+    const blocked = await blockedEitherWay(me);
+    const accepted = await ConversationModel.find({ participants: me._id, status: 'accepted' }).sort({ updatedAt: -1 }).limit(200);
+    const docs = accepted.filter((d) => !d.participants.some((p) => blocked.has(String(p))));
     const otherIds = docs.map((d) => d.participants.find((p) => String(p) !== String(me._id)));
     const users = await UserModel.find({ _id: { $in: otherIds } });
     const byId = new Map(users.map((u) => [u.id as string, toAuthorDto(u)]));
@@ -220,11 +235,14 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
     const me = await findOrCreateUser(req.identity!);
     const userIds = [...new Set(input.userIds)];
     const pairKeys = userIds.filter(isValidObjectId).map((id) => pairKeyOf(me._id, id));
-    const docs = await ConversationModel.find({ pairKey: { $in: pairKeys }, status: 'accepted' });
+    const blocked = await blockedEitherWay(me);
+    const found = await ConversationModel.find({ pairKey: { $in: pairKeys }, status: 'accepted' });
+    const docs = found.filter((d) => !d.participants.some((p) => blocked.has(String(p))));
     if (docs.length !== userIds.length) {
       return reply.code(422).send({ error: 'Só dá para recomendar para quem já conversa com você' });
     }
 
+    await assertMessageRate(me._id, docs.length);
     const text = input.note || `Recomendo ${place.name}`;
     await Promise.all(docs.map((d) => postMessage(d, me, text, { id: place._id, name: place.name })));
     return { sent: docs.length };

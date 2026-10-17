@@ -32,8 +32,10 @@ import {
   leavePlace,
   startConversation,
 } from '../../lib/api';
+import { useAuth } from '../../auth/AuthProvider';
 import { MenuSection } from '../../components/MenuSection';
 import { PlacePhotosSection } from '../../components/PlacePhotosSection';
+import { useReport } from '../../components/ReportSheet';
 import { expiryLabel } from '../../lib/groups';
 import { getCurrentPosition } from '../../lib/location';
 
@@ -75,6 +77,8 @@ function CheckinRow({ checkin, children }: { checkin: Checkin; children?: ReactN
 
 export default function PlaceScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name?: string }>();
+  const { profile } = useAuth();
+  const reporter = useReport();
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -191,6 +195,7 @@ export default function PlaceScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <Stack.Screen options={{ title }} />
+      {reporter.sheet}
 
       <View>
         <Text style={styles.title}>{place.name}</Text>
@@ -317,7 +322,18 @@ export default function PlaceScreen() {
         {reviews.recent.length === 0 ? (
           <Text style={styles.muted}>Ninguém comentou ainda.</Text>
         ) : (
-          reviews.recent.map((c) => <CheckinRow key={c.id} checkin={c} />)
+          reviews.recent.map((c) => (
+            <CheckinRow key={c.id} checkin={c}>
+              {c.comment && c.author.id && c.author.id !== profile?.id ? (
+                <Pressable
+                  style={styles.reportLink}
+                  onPress={() => reporter.open({ type: 'checkin', id: c.id, label: 'este comentário' })}
+                >
+                  <Text style={styles.muted}>Denunciar</Text>
+                </Pressable>
+              ) : null}
+            </CheckinRow>
+          ))
         )}
       </View>
     </ScrollView>
@@ -347,6 +363,7 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.6 },
   link: { color: '#1f6feb', fontWeight: '600', marginTop: 2 },
   recommendButton: { alignSelf: 'flex-start', marginTop: 8, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1, borderColor: '#d0d5dd' },
+  reportLink: { alignSelf: 'flex-end' },
   talkButton: { alignSelf: 'flex-start', marginTop: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#1f6feb' },
   talkText: { color: '#fff', fontWeight: '600' },
   error: { color: '#b42318' },

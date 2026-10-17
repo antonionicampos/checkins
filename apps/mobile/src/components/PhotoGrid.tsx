@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deletePhoto, mediaUrl } from '../lib/api';
+import { useReport } from './ReportSheet';
 
 interface Props {
   photos: Photo[];
@@ -21,6 +22,13 @@ function formatDate(iso: string) {
 export function PhotoGrid({ photos, onDeleted, show }: Props) {
   const [open, setOpen] = useState<Photo | null>(null);
   const insets = useSafeAreaInsets();
+  const reporter = useReport();
+
+  function reportPhoto(photo: Photo) {
+    setOpen(null);
+    // Espera a foto fechar: no iOS, um Modal não abre enquanto outro ainda está fechando.
+    setTimeout(() => reporter.open({ type: 'photo', id: photo.id, label: 'esta foto' }), 400);
+  }
 
   function go(href: Parameters<typeof router.push>[0]) {
     setOpen(null);
@@ -76,14 +84,19 @@ export function PhotoGrid({ photos, onDeleted, show }: Props) {
               </Pressable>
             )}
             <Text style={styles.muted}>{formatDate(open.createdAt)}</Text>
-            {open.mine && (
+            {open.mine ? (
               <Pressable onPress={() => remove(open)}>
                 <Text style={styles.danger}>Apagar foto</Text>
+              </Pressable>
+            ) : (
+              <Pressable onPress={() => reportPhoto(open)}>
+                <Text style={styles.danger}>Denunciar foto</Text>
               </Pressable>
             )}
           </ScrollView>
         )}
       </Modal>
+      {reporter.sheet}
     </>
   );
 }

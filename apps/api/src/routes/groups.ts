@@ -16,7 +16,8 @@ import { z } from 'zod';
 import { CheckinModel, toAuthorDto } from '../models/checkin.js';
 import { activeGroupFilter, GroupMessageModel, GroupModel, type GroupDoc, type GroupMessageDoc } from '../models/group.js';
 import { PlaceModel, toPlaceDto } from '../models/place.js';
-import { findOrCreateUser, UserModel, type UserDoc } from '../models/user.js';
+import { assertMessageRate } from '../moderation/rate-limit.js';
+import { blockedEitherWay, findOrCreateUser, UserModel, type UserDoc } from '../models/user.js';
 
 const placeParamsSchema = z.object({ placeId: z.string() });
 const groupParamsSchema = z.object({ groupId: z.string() });
@@ -205,8 +206,11 @@ export const groupRoutes: FastifyPluginAsync = async (app) => {
     if (!doc.memberIds.some((m) => sameId(m, me._id))) {
       return reply.code(403).send({ error: 'Entre no grupo para ver as mensagens' });
     }
+    // Mensagens de quem está bloqueado não aparecem (o app também filtra as que chegam em tempo real).
+    const blocked = [...(await blockedEitherWay(me))];
     const messages = await GroupMessageModel.find({
       groupId: doc._id,
+      senderId: { $nin: blocked },
       ...(query.before ? { createdAt: { $lt: new Date(query.before) } } : {}),
     })
       .sort({ createdAt: -1, _id: -1 })
@@ -226,6 +230,7 @@ export const groupRoutes: FastifyPluginAsync = async (app) => {
     if (!doc.memberIds.some((m) => sameId(m, me._id))) {
       return reply.code(403).send({ error: 'Entre no grupo para mandar mensagens' });
     }
+    await assertMessageRate(me._id);
     const message = await GroupMessageModel.create({
       groupId: doc._id,
       senderId: me._id,

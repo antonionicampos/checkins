@@ -1,7 +1,7 @@
 import type { User } from '@checkins/shared';
 import { onAuthStateChanged, signOut as firebaseSignOut, type User as FirebaseUser } from 'firebase/auth';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getMe } from '../lib/api';
+import { getMe, setSessionExpiredHandler } from '../lib/api';
 import { auth } from '../lib/firebase';
 import { signOutFromGoogle } from '../lib/google';
 import { closeRealtime } from '../lib/realtime';
@@ -13,6 +13,8 @@ interface AuthState {
   /** Perfil guardado na nossa API; null enquanto carrega ou se a API não respondeu. */
   profile: User | null;
   profileError: string | null;
+  /** Aviso para a tela de login (ex.: a sessão expirou e foi preciso entrar de novo). */
+  signInNotice: string | null;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -24,6 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [profile, setProfile] = useState<User | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
+  const [signInNotice, setSignInNotice] = useState<string | null>(null);
 
   const refreshProfile = useCallback(async () => {
     try {
@@ -39,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onAuthStateChanged(auth, (user) => {
         setFirebaseUser(user);
         setProfile(null);
+        if (user) setSignInNotice(null);
         setInitializing(false);
         if (user) void refreshProfile();
       }),
@@ -51,9 +55,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await firebaseSignOut(auth);
   }, []);
 
+  // A API recusou a sessão mesmo com um token novo: sai da conta, e o app vai para a tela de login.
+  useEffect(() => {
+    setSessionExpiredHandler(() => {
+      if (!auth.currentUser) return;
+      setSignInNotice('Sua sessão expirou. Entre de novo para continuar.');
+      void signOut();
+    });
+    return () => setSessionExpiredHandler(null);
+  }, [signOut]);
+
   const value = useMemo(
-    () => ({ initializing, firebaseUser, profile, profileError, refreshProfile, signOut }),
-    [initializing, firebaseUser, profile, profileError, refreshProfile, signOut],
+    () => ({ initializing, firebaseUser, profile, profileError, signInNotice, refreshProfile, signOut }),
+    [initializing, firebaseUser, profile, profileError, signInNotice, refreshProfile, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

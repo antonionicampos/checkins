@@ -19,7 +19,7 @@ import { isGoogleSignInAvailable, signInWithGoogle } from '../lib/google';
 type Mode = 'entrar' | 'criar';
 
 export default function SignInScreen() {
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, signInNotice } = useAuth();
   const [mode, setMode] = useState<Mode>('entrar');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -105,6 +105,7 @@ export default function SignInScreen() {
           autoComplete={mode === 'entrar' ? 'current-password' : 'new-password'}
         />
 
+        {signInNotice && !error && <Text style={styles.info}>{signInNotice}</Text>}
         {error && <Text style={styles.error}>{error}</Text>}
         {info && <Text style={styles.info}>{info}</Text>}
 

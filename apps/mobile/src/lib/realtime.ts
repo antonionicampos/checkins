@@ -4,6 +4,8 @@ import { API_URL } from './api';
 import { auth } from './firebase';
 
 let socket: Socket | null = null;
+/** Depois que a API recusa o token, a próxima tentativa pede um token novo ao Firebase. */
+let refreshTokenOnConnect = false;
 
 /** Uma conexão de Socket.IO para o app todo, aberta no primeiro uso; o token é renovado a cada reconexão. */
 function getSocket(): Socket {
@@ -11,8 +13,10 @@ function getSocket(): Socket {
     const s = io(API_URL, {
       transports: ['websocket'],
       auth: (cb) => {
+        const force = refreshTokenOnConnect;
+        refreshTokenOnConnect = false;
         auth.currentUser
-          ?.getIdToken()
+          ?.getIdToken(force)
           .then((token) => cb({ token }))
           .catch(() => cb({}));
         if (!auth.currentUser) cb({});
@@ -21,6 +25,7 @@ function getSocket(): Socket {
     // Se a API recusar a conexão (token ainda não pronto, API reiniciando), o Socket.IO não tenta de novo
     // sozinho: sem isso, a pessoa ficaria sem receber mensagens até fechar o app.
     s.on('connect_error', () => {
+      refreshTokenOnConnect = true;
       if (!s.active) setTimeout(() => socket === s && s.connect(), 3000);
     });
     socket = s;

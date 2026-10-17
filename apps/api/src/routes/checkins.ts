@@ -12,7 +12,7 @@ import { isValidObjectId, Types } from 'mongoose';
 import { z } from 'zod';
 import { CheckinModel, toAuthorDto, toCheckinDto, type CheckinDoc } from '../models/checkin.js';
 import { PlaceModel, toPlaceDto } from '../models/place.js';
-import { findOrCreateUser, UserModel } from '../models/user.js';
+import { blockedEitherWay, findOrCreateUser, UserModel } from '../models/user.js';
 
 const placeParamsSchema = z.object({ placeId: z.string() });
 
@@ -88,8 +88,8 @@ export const checkinRoutes: FastifyPluginAsync = async (app) => {
       return body;
     }
 
-    // Uma linha por pessoa (o check-in mais recente), sem quem pediu e só quem escolheu aparecer.
-    const seen = new Set<string>([String(user._id)]);
+    // Uma linha por pessoa (o check-in mais recente), sem quem pediu, só quem escolheu aparecer e sem bloqueios.
+    const seen = new Set<string>([String(user._id), ...(await blockedEitherWay(user))]);
     const others = active.filter((c) => {
       const id = String(c.userId);
       if (seen.has(id) || !c.visible) return false;
@@ -111,9 +111,12 @@ export const checkinRoutes: FastifyPluginAsync = async (app) => {
     const place = await findPlaceOr404(placeId, reply);
     if (!place) return reply;
 
+    const me = await findOrCreateUser(req.identity!);
+    const blocked = [...(await blockedEitherWay(me))];
     const [recent, stats] = await Promise.all([
       CheckinModel.find({
         placeId: place._id,
+        userId: { $nin: blocked },
         $or: [{ comment: { $exists: true, $ne: '' } }, { rating: { $exists: true } }],
       })
         .sort({ createdAt: -1 })

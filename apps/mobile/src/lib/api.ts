@@ -7,6 +7,8 @@ import type {
   GroupMessage,
   Menu,
   Message,
+  Photo,
+  Profile,
   CreateCheckinInput,
   HealthResponse,
   Place,
@@ -207,4 +209,32 @@ export function deleteMenu(menuId: string) {
 /** Endereço completo de um arquivo servido pela API (ex.: a foto do cardápio). */
 export function mediaUrl(path: string) {
   return `${API_URL}${path}`;
+}
+
+export function getProfile(userId: string) {
+  return request<Profile>(`/users/${userId}`);
+}
+
+function photosQuery(before?: string) {
+  return before ? `?${new URLSearchParams({ before })}` : '';
+}
+
+export function getUserPhotos(userId: string, before?: string) {
+  return request<{ photos: Photo[] }>(`/users/${userId}/photos${photosQuery(before)}`);
+}
+
+export function getPlacePhotos(placeId: string, before?: string) {
+  return request<{ photos: Photo[] }>(`/places/${placeId}/photos${photosQuery(before)}`);
+}
+
+/** Posta uma foto do lugar; a legenda vai antes do arquivo, como a API espera. */
+export async function uploadPhoto(placeId: string, uri: string, caption?: string) {
+  const body = new FormData();
+  if (caption) body.append('caption', caption);
+  body.append('file', new File(uri));
+  return request<Photo>(`/places/${placeId}/photos`, { method: 'POST', body });
+}
+
+export function deletePhoto(photoId: string) {
+  return requestNoContent(`/photos/${photoId}`, 'DELETE');
 }

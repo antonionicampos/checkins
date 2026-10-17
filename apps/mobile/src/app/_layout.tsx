@@ -25,6 +25,7 @@ function RootNavigator() {
         <Stack.Screen name="groups/new" options={{ title: 'Novo grupo' }} />
         <Stack.Screen name="groups/[id]/index" options={{ title: '' }} />
         <Stack.Screen name="groups/[id]/members" options={{ title: 'Membros' }} />
+        <Stack.Screen name="profile/[id]" options={{ title: '' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="sign-in" options={{ headerShown: false }} />

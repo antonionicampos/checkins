@@ -20,7 +20,7 @@ fotos e cardápios.
 | Conversa direta com quem está no local (após aceite) | Pronto (API, lista de conversas e chat no app) |
 | Grupos no local e chat do grupo | Pronto (criar no local, entrar com check-in, administrador, temporário ou sem prazo) |
 | Cardápio em foto ou PDF (salvo no disco de casa) | Pronto (data de envio, marcar como desatualizado) |
-| Perfil com fotos dos lugares | A fazer |
+| Perfil com fotos dos lugares | Pronto (fotos postadas com check-in, "sobre mim", números de check-ins e lugares) |
 | Denúncia/moderação e notificações push | A fazer |
 
 Decisões já tomadas: Firebase só para login; dados na API em casa com MongoDB (sem Docker);
@@ -53,6 +53,9 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
   tipo pelo conteúdo do arquivo, grava em `MEDIA_DIR/menus/` com um nome aleatório e serve em `/media/menus/...`
   sem login (o PDF abre no navegador do celular, que não manda o token). Todo mundo vê a data de envio e
   pode marcar o cardápio como desatualizado; quem enviou pode apagar.
+- Fotos de lugares: quem tem check-in no lugar posta uma foto (JPEG, PNG ou WebP, até 10 MB) com legenda
+  opcional. Ela aparece na página do lugar e no perfil de quem postou, e fica em `MEDIA_DIR/photos/`.
+  O perfil de outra pessoa mostra nome, "sobre mim", números de check-ins, lugares e fotos, mas não o e-mail.
 
 ## Estrutura
 
@@ -77,7 +80,7 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `GET /places/nearby?lat=&lng=&radius=&category=` | Não | Lugares no raio (50 a 5000 m, padrão 1000), do mais perto ao mais longe |
 | `GET /places/:placeId` | Não | Um lugar |
 | `GET /me` | Sim | Perfil de quem está logado; cria o perfil no primeiro acesso |
-| `PATCH /me` | Sim | Muda o nome exibido (`{ "displayName": "..." }`) |
+| `PATCH /me` | Sim | Muda o nome exibido e o "sobre mim" (`{ "displayName", "bio" }`, os dois opcionais) |
 | `POST /places/:placeId/checkins` | Sim | Check-in (`{ position: { lat, lng }, comment?, rating?, visible? }`); 422 se estiver a mais de 300 m. Encerra a presença anterior |
 | `DELETE /me/presence` | Sim | Sai do local antes das 3 horas |
 | `GET /places/:placeId/presence` | Sim | Se você está no local e, só nesse caso, quem mais está ali agora |
@@ -100,7 +103,12 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `POST /places/:placeId/menus` | Sim | Envia cardápio (multipart, campo `file`); exige check-in no lugar |
 | `POST /menus/:id/outdated` | Sim | Marca ou desmarca como desatualizado |
 | `DELETE /menus/:id` | Sim | Quem enviou apaga |
-| `GET /media/menus/:arquivo` | Não | O arquivo do cardápio |
+| `GET /users/:id` | Sim | Perfil público de alguém, com números de check-ins, lugares e fotos |
+| `GET /users/:id/photos?before=` | Sim | Fotos postadas pela pessoa, da mais recente (30 por vez) |
+| `GET /places/:placeId/photos?before=` | Sim | Fotos do lugar, da mais recente (30 por vez) |
+| `POST /places/:placeId/photos` | Sim | Posta foto (multipart: `caption` opcional e depois `file`); exige check-in no lugar |
+| `DELETE /photos/:id` | Sim | Quem postou apaga |
+| `GET /media/menus/:arquivo` e `/media/photos/:arquivo` | Não | Os arquivos de cardápios e fotos |
 
 O Socket.IO exige o token na conexão: `io(url, { auth: { token } })`. Cada pessoa entra na sua sala ao conectar e
 recebe `conversation:updated` (convite novo ou respondido), `message:new`, `group:message` e `group:updated`.

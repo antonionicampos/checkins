@@ -8,7 +8,10 @@ import { noopNotify, type Notify } from './realtime/notify.js';
 import { checkinRoutes } from './routes/checkins.js';
 import { conversationRoutes } from './routes/conversations.js';
 import { groupRoutes } from './routes/groups.js';
+import { mediaRoutes } from './routes/media.js';
 import { menuRoutes } from './routes/menus.js';
+import { photoRoutes } from './routes/photos.js';
+import { userRoutes } from './routes/users.js';
 import { healthRoutes } from './routes/health.js';
 import { meRoutes } from './routes/me.js';
 import { placeRoutes } from './routes/places.js';
@@ -56,7 +59,10 @@ export async function buildApp(
   await app.register(checkinRoutes);
   await app.register(conversationRoutes);
   await app.register(groupRoutes);
+  await app.register(mediaRoutes(config.MEDIA_DIR));
   await app.register(menuRoutes(config.MEDIA_DIR));
+  await app.register(photoRoutes(config.MEDIA_DIR));
+  await app.register(userRoutes);
 
   return app;
 }

@@ -12,7 +12,7 @@ type State =
   | { kind: 'ready'; places: Array<Place & { distance: number }>; apiOk: boolean };
 
 export default function NearbyPlacesScreen() {
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const [state, setState] = useState<State>({ kind: 'loading' });
   const header = (
     <Stack.Screen
@@ -24,11 +24,15 @@ export default function NearbyPlacesScreen() {
             </Pressable>
           </Link>
         ),
-        headerRight: () => (
-          <Pressable onPress={signOut} hitSlop={8}>
-            <Text style={styles.headerLink}>Sair</Text>
-          </Pressable>
-        ),
+        // O perfil carrega logo depois do login; até lá, o link fica escondido.
+        headerRight: () =>
+          profile ? (
+            <Link href={{ pathname: '/profile/[id]', params: { id: profile.id } }} asChild>
+              <Pressable hitSlop={8}>
+                <Text style={styles.headerLink}>Perfil</Text>
+              </Pressable>
+            </Link>
+          ) : null,
       }}
     />
   );

@@ -1,12 +1,9 @@
 import multipart from '@fastify/multipart';
 import { MENU_MAX_BYTES, type CheckinAuthor, type Menu } from '@checkins/shared';
 import type { FastifyPluginAsync } from 'fastify';
-import { createReadStream } from 'node:fs';
-import { stat } from 'node:fs/promises';
-import { join } from 'node:path';
 import { isValidObjectId } from 'mongoose';
 import { z } from 'zod';
-import { deleteMedia, detectFileType, MEDIA_FILE_PATTERN, MIME_BY_EXT, saveMedia } from '../media/storage.js';
+import { deleteMedia, detectFileType, saveMedia } from '../media/storage.js';
 import { CheckinModel, toAuthorDto } from '../models/checkin.js';
 import { MenuModel, type MenuDoc } from '../models/menu.js';
 import { PlaceModel } from '../models/place.js';
@@ -15,7 +12,6 @@ import { findOrCreateUser, UserModel, type UserDoc } from '../models/user.js';
 const FOLDER = 'menus';
 const placeParamsSchema = z.object({ placeId: z.string() });
 const menuParamsSchema = z.object({ menuId: z.string() });
-const fileParamsSchema = z.object({ file: z.string() });
 const unknownAuthor: CheckinAuthor = { id: '', displayName: 'Conta removida' };
 
 function toMenuDto(doc: MenuDoc, uploader: CheckinAuthor, me: UserDoc): Menu {
@@ -34,23 +30,6 @@ function toMenuDto(doc: MenuDoc, uploader: CheckinAuthor, me: UserDoc): Menu {
 
 export const menuRoutes = (mediaDir: string): FastifyPluginAsync => async (app) => {
   await app.register(multipart, { limits: { fileSize: MENU_MAX_BYTES, files: 1 } });
-
-  /**
-   * Arquivos de cardápio, sem login: o app abre PDFs no navegador, que não manda o token.
-   * Os nomes são aleatórios e só aparecem para quem está logado.
-   */
-  app.get('/media/menus/:file', async (req, reply) => {
-    const { file } = fileParamsSchema.parse(req.params);
-    if (!MEDIA_FILE_PATTERN.test(file)) return reply.code(404).send({ error: 'Arquivo não encontrado' });
-    const path = join(mediaDir, FOLDER, file);
-    const info = await stat(path).catch(() => null);
-    if (!info) return reply.code(404).send({ error: 'Arquivo não encontrado' });
-    return reply
-      .header('content-type', MIME_BY_EXT[file.split('.')[1]!])
-      .header('content-length', info.size)
-      .header('cache-control', 'public, max-age=31536000, immutable')
-      .send(createReadStream(path));
-  });
 
   app.register(async (authed) => {
     authed.addHook('preHandler', app.requireAuth);

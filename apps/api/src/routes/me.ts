@@ -14,7 +14,8 @@ export const meRoutes: FastifyPluginAsync = async (app) => {
   app.patch('/me', async (req) => {
     const input = updateMeSchema.parse(req.body);
     const user = await findOrCreateUser(req.identity!);
-    user.displayName = input.displayName;
+    if (input.displayName !== undefined) user.displayName = input.displayName;
+    if (input.bio !== undefined) user.bio = input.bio || undefined;
     await user.save();
     return toUserDto(user);
   });

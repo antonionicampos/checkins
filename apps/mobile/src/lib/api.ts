@@ -41,10 +41,16 @@ export class ApiError extends Error {
   }
 }
 
-/** Chama a API mandando o token do Firebase de quem está logado (renovado sozinho quando expira). */
-async function request<T>(path: string, init: RequestInit = {}, okStatuses: number[] = []): Promise<T> {
-  const token = await auth.currentUser?.getIdToken();
-  const res = await fetch(`${API_URL}${path}`, {
+let onSessionExpired: (() => void) | null = null;
+
+/** O AuthProvider registra aqui o que fazer quando a API recusa a sessão (sair e voltar ao login). */
+export function setSessionExpiredHandler(handler: (() => void) | null) {
+  onSessionExpired = handler;
+}
+
+async function fetchWithToken(path: string, init: RequestInit, forceRefresh: boolean) {
+  const token = await auth.currentUser?.getIdToken(forceRefresh);
+  return fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
       // FormData (envio de arquivo) define o próprio content-type, com o boundary.
@@ -53,6 +59,29 @@ async function request<T>(path: string, init: RequestInit = {}, okStatuses: numb
       ...init.headers,
     },
   });
+}
+
+/**
+ * Chama a API mandando o token do Firebase de quem está logado. Se a API recusar o token (401),
+ * pede um token novo ao Firebase e tenta mais uma vez; se ainda assim falhar, a sessão acabou
+ * e o app volta para a tela de login.
+ */
+async function authedFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const res = await fetchWithToken(path, init, false);
+  if (res.status !== 401 || !auth.currentUser) return res;
+  try {
+    const retry = await fetchWithToken(path, init, true);
+    if (retry.status !== 401) return retry;
+  } catch {
+    // Sem conseguir renovar o token (conta removida, senha trocada): trata como sessão encerrada.
+  }
+  onSessionExpired?.();
+  return res;
+}
+
+/** Chama a API e devolve o corpo em JSON; erros viram ApiError com a mensagem da API. */
+async function request<T>(path: string, init: RequestInit = {}, okStatuses: number[] = []): Promise<T> {
+  const res = await authedFetch(path, init);
   const body = (await res.json().catch(() => ({}))) as T & { error?: string };
   if (!res.ok && !okStatuses.includes(res.status)) {
     throw new ApiError(res.status, body.error ?? `A API respondeu ${res.status}`);
@@ -158,11 +187,7 @@ export function joinGroup(groupId: string) {
 
 /** Chamadas que respondem 204 (sem corpo). */
 async function requestNoContent(path: string, method: string) {
-  const token = await auth.currentUser?.getIdToken();
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers: token ? { authorization: `Bearer ${token}` } : {},
-  });
+  const res = await authedFetch(path, { method });
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new ApiError(res.status, body.error ?? `A API respondeu ${res.status}`);

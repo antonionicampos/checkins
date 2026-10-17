@@ -4,7 +4,9 @@ import { ZodError } from 'zod';
 import { registerAuth } from './auth/plugin.js';
 import type { VerifyToken } from './auth/identity.js';
 import type { Config } from './config.js';
+import { noopNotify, type Notify } from './realtime/notify.js';
 import { checkinRoutes } from './routes/checkins.js';
+import { conversationRoutes } from './routes/conversations.js';
 import { healthRoutes } from './routes/health.js';
 import { meRoutes } from './routes/me.js';
 import { placeRoutes } from './routes/places.js';
@@ -12,6 +14,14 @@ import { placeRoutes } from './routes/places.js';
 export interface AppDeps {
   /** Validação do token de login; nos testes, troca-se por uma falsa. */
   verifyToken: VerifyToken;
+  /** Envio de eventos em tempo real; o servidor liga no Socket.IO depois de criá-lo. */
+  notify?: Notify;
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    notify: Notify;
+  }
 }
 
 /** Monta a API sem abrir porta nem conectar no banco, para os testes usarem `app.inject`. */
@@ -21,6 +31,7 @@ export async function buildApp(
 ): Promise<FastifyInstance> {
   const app = Fastify({ logger: { level: config.LOG_LEVEL } });
   registerAuth(app, deps.verifyToken);
+  app.decorate('notify', deps.notify ?? noopNotify);
 
   await app.register(cors, {
     origin: config.CORS_ORIGIN === '*' ? true : config.CORS_ORIGIN.split(',').map((o) => o.trim()),
@@ -41,6 +52,7 @@ export async function buildApp(
   await app.register(placeRoutes);
   await app.register(meRoutes);
   await app.register(checkinRoutes);
+  await app.register(conversationRoutes);
 
   return app;
 }

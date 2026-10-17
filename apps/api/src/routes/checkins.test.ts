@@ -1,4 +1,4 @@
-import { toGeoPoint } from '@checkins/shared';
+import { PRESENCE_RADIUS_METERS, toGeoPoint } from '@checkins/shared';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { connectMongo, disconnectMongo } from '../db.js';
 import { CheckinModel } from '../models/checkin.js';
@@ -9,7 +9,7 @@ import { authHeader, buildTestApp, TEST_MONGO_URL } from '../test/setup.js';
 const barPos = { lat: -23.5614, lng: -46.6559 };
 const cafePos = { lat: -23.5700, lng: -46.6500 };
 const near = { lat: barPos.lat + 0.0003, lng: barPos.lng }; // ~33 m
-const far = { lat: barPos.lat + 0.002, lng: barPos.lng }; // ~222 m
+const far = { lat: barPos.lat + 0.004, lng: barPos.lng }; // ~445 m, fora do raio
 
 describe.skipIf(!TEST_MONGO_URL)('check-in', async () => {
   const app = await buildTestApp();
@@ -63,7 +63,7 @@ describe.skipIf(!TEST_MONGO_URL)('check-in', async () => {
   it('recusa check-in longe do lugar', async () => {
     const res = await checkin('ana', barId, { position: far });
     expect(res.statusCode).toBe(422);
-    expect(res.json().error).toContain('100 m');
+    expect(res.json().error).toContain(`${PRESENCE_RADIUS_METERS} m`);
   });
 
   it('responde 404 para lugar inexistente e 400 sem posição', async () => {

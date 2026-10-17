@@ -17,6 +17,13 @@ export default function NearbyPlacesScreen() {
   const header = (
     <Stack.Screen
       options={{
+        headerLeft: () => (
+          <Link href="/conversations" asChild>
+            <Pressable hitSlop={8}>
+              <Text style={styles.headerLink}>Conversas</Text>
+            </Pressable>
+          </Link>
+        ),
         headerRight: () => (
           <Pressable onPress={signOut} hitSlop={8}>
             <Text style={styles.headerLink}>Sair</Text>

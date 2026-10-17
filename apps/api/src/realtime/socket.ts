@@ -2,11 +2,12 @@ import type { Server as HttpServer } from 'node:http';
 import { Server } from 'socket.io';
 import type { VerifyToken } from '../auth/identity.js';
 import type { Config } from '../config.js';
+import { userRoom } from './notify.js';
 
 /**
  * Socket.IO para o chat em tempo real. Cada lugar e cada grupo vira uma "sala".
  * A conexão exige o ID token do Firebase em `auth.token` (io(url, { auth: { token } })).
- * Por enquanto só existe a entrada/saída de salas; mensagens vêm com a conversa.
+ * Cada pessoa entra na sua sala (`user:<uid>`) ao conectar, onde recebe convites e mensagens das conversas.
  */
 export function attachRealtime(
   httpServer: HttpServer,
@@ -29,6 +30,7 @@ export function attachRealtime(
   });
 
   io.on('connection', (socket) => {
+    void socket.join(userRoom((socket.data.identity as { uid: string }).uid));
     socket.on('place:join', (placeId: unknown) => {
       if (typeof placeId === 'string') void socket.join(`place:${placeId}`);
     });

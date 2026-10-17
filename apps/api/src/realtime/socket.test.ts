@@ -2,6 +2,7 @@ import type { AddressInfo } from 'node:net';
 import { io as connect, type Socket } from 'socket.io-client';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildTestApp, fakeVerifyToken } from '../test/setup.js';
+import { userRoom } from './notify.js';
 import { attachRealtime } from './socket.js';
 
 describe('Socket.IO', async () => {
@@ -42,5 +43,19 @@ describe('Socket.IO', async () => {
     const socket = await tryConnect({ token: 'test:ana' });
     expect(socket.connected).toBe(true);
     socket.close();
+  });
+
+  it('entrega eventos na sala de cada pessoa', async () => {
+    const ana = await tryConnect({ token: 'test:ana' });
+    const bia = await tryConnect({ token: 'test:bia' });
+    const received: string[] = [];
+    bia.on('message:new', () => received.push('bia'));
+    const got = new Promise((resolve) => ana.on('message:new', resolve));
+    await new Promise((r) => setTimeout(r, 50));
+    io.to(userRoom('ana')).emit('message:new', { text: 'Oi' });
+    await expect(got).resolves.toEqual({ text: 'Oi' });
+    expect(received).toEqual([]);
+    ana.close();
+    bia.close();
   });
 });

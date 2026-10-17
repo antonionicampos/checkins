@@ -203,6 +203,22 @@ export default function PlaceScreen() {
             ★ {reviews.averageRating.toFixed(1)} ({reviews.ratingCount} {reviews.ratingCount === 1 ? 'nota' : 'notas'})
           </Text>
         )}
+        <Pressable
+          style={styles.recommendButton}
+          onPress={() =>
+            router.push({
+              pathname: '/recommend/[placeId]',
+              params: {
+                placeId: id,
+                placeName: place.name,
+                lat: String(place.location.lat),
+                lng: String(place.location.lng),
+              },
+            })
+          }
+        >
+          <Text style={styles.secondaryText}>Recomendar a amigos</Text>
+        </Pressable>
       </View>
 
       {presence.present ? (
@@ -330,6 +346,7 @@ const styles = StyleSheet.create({
   secondaryText: { fontWeight: '600' },
   disabled: { opacity: 0.6 },
   link: { color: '#1f6feb', fontWeight: '600', marginTop: 2 },
+  recommendButton: { alignSelf: 'flex-start', marginTop: 8, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1, borderColor: '#d0d5dd' },
   talkButton: { alignSelf: 'flex-start', marginTop: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#1f6feb' },
   talkText: { color: '#fff', fontWeight: '600' },
   error: { color: '#b42318' },

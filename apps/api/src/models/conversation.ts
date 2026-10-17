@@ -41,6 +41,10 @@ const messageSchema = new Schema(
     conversationId: { type: Schema.Types.ObjectId, ref: 'Conversation', required: true },
     senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     text: { type: String, required: true, maxlength: 1000 },
+    /** Lugar recomendado; o nome fica guardado para a mensagem não depender do lugar existir. */
+    place: {
+      type: new Schema({ id: { type: Schema.Types.ObjectId, required: true }, name: { type: String, required: true } }, { _id: false }),
+    },
   },
   { timestamps: true },
 );
@@ -56,6 +60,7 @@ export function toMessageDto(doc: MessageDoc): Message {
     conversationId: String(doc.conversationId),
     senderId: String(doc.senderId),
     text: doc.text,
+    place: doc.place ? { id: String(doc.place.id), name: doc.place.name } : undefined,
     createdAt: doc.createdAt.toISOString(),
   };
 }

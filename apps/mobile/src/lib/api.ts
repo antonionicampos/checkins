@@ -1,5 +1,6 @@
 import type {
   Checkin,
+  Contact,
   Conversation,
   CreateGroupInput,
   Group,
@@ -15,6 +16,7 @@ import type {
   PlaceCategory,
   PlaceReviewsResponse,
   PresenceResponse,
+  RecommendPlaceInput,
   StartConversationInput,
   UpdateMeInput,
   User,
@@ -237,4 +239,13 @@ export async function uploadPhoto(placeId: string, uri: string, caption?: string
 
 export function deletePhoto(photoId: string) {
   return requestNoContent(`/photos/${photoId}`, 'DELETE');
+}
+
+/** Pessoas com quem já tenho conversa aceita; é para elas que dá para recomendar lugares. */
+export function getContacts() {
+  return request<{ contacts: Contact[] }>('/me/contacts');
+}
+
+export function recommendPlace(placeId: string, input: RecommendPlaceInput) {
+  return request<{ sent: number }>(`/places/${placeId}/recommendations`, { method: 'POST', body: JSON.stringify(input) });
 }

@@ -12,6 +12,8 @@ const envSchema = z.object({
   FIREBASE_PROJECT_ID: z.string().default(''),
   /** Pasta no disco da máquina de casa onde ficam fotos e cardápios. Padrão: `media/` na raiz do repositório. */
   MEDIA_DIR: z.string().default(resolve(import.meta.dirname, '../../../media')),
+  /** Token de acesso do Expo, só se o "push security" estiver ligado no projeto do Expo. */
+  EXPO_ACCESS_TOKEN: z.string().default(''),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 

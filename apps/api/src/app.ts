@@ -4,6 +4,8 @@ import { ZodError } from 'zod';
 import { registerAuth } from './auth/plugin.js';
 import type { VerifyToken } from './auth/identity.js';
 import type { Config } from './config.js';
+import { createPushToUsers, type PushToUsers } from './push/notify.js';
+import { noopPushSender, type PushSender } from './push/sender.js';
 import { noopNotify, type Notify } from './realtime/notify.js';
 import { checkinRoutes } from './routes/checkins.js';
 import { conversationRoutes } from './routes/conversations.js';
@@ -22,11 +24,14 @@ export interface AppDeps {
   verifyToken: VerifyToken;
   /** Envio de eventos em tempo real; o servidor liga no Socket.IO depois de criá-lo. */
   notify?: Notify;
+  /** Envio de notificações push; o servidor usa o Expo Push, os testes guardam o que seria enviado. */
+  push?: PushSender;
 }
 
 declare module 'fastify' {
   interface FastifyInstance {
     notify: Notify;
+    pushTo: PushToUsers;
   }
 }
 
@@ -38,6 +43,7 @@ export async function buildApp(
   const app = Fastify({ logger: { level: config.LOG_LEVEL } });
   registerAuth(app, deps.verifyToken);
   app.decorate('notify', deps.notify ?? noopNotify);
+  app.decorate('pushTo', createPushToUsers(deps.push ?? noopPushSender));
 
   await app.register(cors, {
     origin: config.CORS_ORIGIN === '*' ? true : config.CORS_ORIGIN.split(',').map((o) => o.trim()),

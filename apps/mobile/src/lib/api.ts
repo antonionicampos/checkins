@@ -186,8 +186,8 @@ export function joinGroup(groupId: string) {
 }
 
 /** Chamadas que respondem 204 (sem corpo). */
-async function requestNoContent(path: string, method: string) {
-  const res = await authedFetch(path, { method });
+async function requestNoContent(path: string, method: string, body?: object) {
+  const res = await authedFetch(path, { method, ...(body ? { body: JSON.stringify(body) } : {}) });
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new ApiError(res.status, body.error ?? `A API respondeu ${res.status}`);
@@ -291,4 +291,13 @@ export function blockUser(userId: string) {
 
 export function unblockUser(userId: string) {
   return requestNoContent(`/users/${userId}/block`, 'DELETE');
+}
+
+/** Avisa a API do aparelho que deve receber as notificações desta conta. */
+export function registerPushToken(token: string) {
+  return requestNoContent('/me/push-tokens', 'POST', { token });
+}
+
+export function unregisterPushToken(token: string) {
+  return requestNoContent('/me/push-tokens', 'DELETE', { token });
 }

@@ -12,6 +12,8 @@ const userSchema = new Schema(
     /** Texto curto "sobre mim" do perfil. */
     bio: { type: String, trim: true, maxlength: 160 },
     providers: { type: [String], default: [] },
+    /** Tokens do Expo Push dos aparelhos da pessoa (um por aparelho com o app logado). */
+    pushTokens: { type: [String], default: [] },
     /** Pessoas que este usuário bloqueou: uma não vê nem conversa com a outra. */
     blockedIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
     /** Conta suspensa pela moderação: a API recusa tudo dela. */
@@ -21,6 +23,8 @@ const userSchema = new Schema(
   { timestamps: true },
 );
 
+// Um aparelho pertence a uma conta só (quem entrou por último).
+userSchema.index({ pushTokens: 1 });
 // Quem me bloqueou (para o bloqueio valer nos dois lados).
 userSchema.index({ blockedIds: 1 });
 

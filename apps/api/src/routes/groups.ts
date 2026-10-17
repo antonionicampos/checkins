@@ -241,6 +241,12 @@ export const groupRoutes: FastifyPluginAsync = async (app) => {
     await GroupModel.updateOne({ _id: doc._id }, { $currentDate: { updatedAt: true } });
     const dto = toGroupMessageDto(message, toAuthorDto(me));
     await notifyMembers(doc, GROUP_EVENTS.message, dto);
+    // Push para os outros membros, menos quem bloqueou ou foi bloqueado por quem mandou.
+    const blocked = await blockedEitherWay(me);
+    await app.pushTo(
+      doc.memberIds.filter((m) => !sameId(m, me._id) && !blocked.has(String(m))),
+      { title: doc.name, body: `${me.displayName}: ${text}`, data: { url: `/groups/${doc.id as string}` } },
+    );
     return reply.code(201).send(dto);
   });
 };

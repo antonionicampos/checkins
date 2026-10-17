@@ -1,12 +1,14 @@
 import {
   messagesQuerySchema,
   REALTIME_EVENTS,
+  recommendPlaceSchema,
   sendMessageSchema,
   startConversationSchema,
+  type Contact,
   type Conversation,
 } from '@checkins/shared';
 import type { FastifyPluginAsync, FastifyReply } from 'fastify';
-import { isValidObjectId } from 'mongoose';
+import { isValidObjectId, Types } from 'mongoose';
 import { z } from 'zod';
 import { CheckinModel, toAuthorDto } from '../models/checkin.js';
 import {
@@ -20,6 +22,7 @@ import { PlaceModel } from '../models/place.js';
 import { findOrCreateUser, UserModel, type UserDoc } from '../models/user.js';
 
 const conversationParamsSchema = z.object({ conversationId: z.string() });
+const placeParamsSchema = z.object({ placeId: z.string() });
 
 /** Monta a conversa do ponto de vista de `me`. */
 async function toConversationDto(doc: ConversationDoc, me: UserDoc): Promise<Conversation> {
@@ -55,6 +58,18 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
     await Promise.all(
       users.map(async (u) => app.notify(u.firebaseUid, REALTIME_EVENTS.conversationUpdated, await toConversationDto(doc, u))),
     );
+  }
+
+  /** Grava a mensagem, atualiza a última mensagem da conversa e avisa as duas pessoas. */
+  async function postMessage(doc: ConversationDoc, me: UserDoc, text: string, place?: { id: Types.ObjectId; name: string }) {
+    const message = await MessageModel.create({ conversationId: doc._id, senderId: me._id, text, place });
+    doc.lastMessage = { messageId: message._id, senderId: me._id, text, createdAt: message.createdAt };
+    await doc.save();
+
+    const dto = toMessageDto(message);
+    const users = await UserModel.find({ _id: { $in: doc.participants } });
+    for (const u of users) app.notify(u.firebaseUid, REALTIME_EVENTS.messageNew, dto);
+    return dto;
   }
 
   /** A conversa, se `me` faz parte dela; senão responde 404. */
@@ -173,13 +188,45 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(403).send({ error: 'A conversa começa quando a outra pessoa aceitar o convite' });
     }
 
-    const message = await MessageModel.create({ conversationId: doc._id, senderId: me._id, text });
-    doc.lastMessage = { messageId: message._id, senderId: me._id, text, createdAt: message.createdAt };
-    await doc.save();
-
-    const dto = toMessageDto(message);
-    const users = await UserModel.find({ _id: { $in: doc.participants } });
-    for (const u of users) app.notify(u.firebaseUid, REALTIME_EVENTS.messageNew, dto);
+    const dto = await postMessage(doc, me, text);
     return reply.code(201).send(dto);
+  });
+
+  /** Contatos: pessoas com quem tenho conversa aceita, das conversas mais recentes para as mais antigas. */
+  app.get('/me/contacts', async (req) => {
+    const me = await findOrCreateUser(req.identity!);
+    const docs = await ConversationModel.find({ participants: me._id, status: 'accepted' }).sort({ updatedAt: -1 }).limit(200);
+    const otherIds = docs.map((d) => d.participants.find((p) => String(p) !== String(me._id)));
+    const users = await UserModel.find({ _id: { $in: otherIds } });
+    const byId = new Map(users.map((u) => [u.id as string, toAuthorDto(u)]));
+    const contacts: Contact[] = [];
+    docs.forEach((d, i) => {
+      const user = byId.get(String(otherIds[i]));
+      if (user) contacts.push({ user, conversationId: d.id as string });
+    });
+    return { contacts };
+  });
+
+  /**
+   * Recomenda um lugar para contatos: vira uma mensagem na conversa com cada um, com o cartão do lugar.
+   * Não exige estar no lugar. Se algum destinatário não for contato, nada é enviado.
+   */
+  app.post('/places/:placeId/recommendations', async (req, reply) => {
+    const { placeId } = placeParamsSchema.parse(req.params);
+    const input = recommendPlaceSchema.parse(req.body);
+    const place = isValidObjectId(placeId) ? await PlaceModel.findById(placeId) : null;
+    if (!place) return reply.code(404).send({ error: 'Lugar não encontrado' });
+
+    const me = await findOrCreateUser(req.identity!);
+    const userIds = [...new Set(input.userIds)];
+    const pairKeys = userIds.filter(isValidObjectId).map((id) => pairKeyOf(me._id, id));
+    const docs = await ConversationModel.find({ pairKey: { $in: pairKeys }, status: 'accepted' });
+    if (docs.length !== userIds.length) {
+      return reply.code(422).send({ error: 'Só dá para recomendar para quem já conversa com você' });
+    }
+
+    const text = input.note || `Recomendo ${place.name}`;
+    await Promise.all(docs.map((d) => postMessage(d, me, text, { id: place._id, name: place.name })));
+    return { sent: docs.length };
   });
 };

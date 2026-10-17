@@ -21,6 +21,7 @@ fotos e cardápios.
 | Grupos no local e chat do grupo | Pronto (criar no local, entrar com check-in, administrador, temporário ou sem prazo) |
 | Cardápio em foto ou PDF (salvo no disco de casa) | Pronto (data de envio, marcar como desatualizado) |
 | Perfil com fotos dos lugares | Pronto (fotos postadas com check-in, "sobre mim", números de check-ins e lugares) |
+| Recomendar um lugar a amigos | Pronto (para contatos do app, como cartão no chat, ou fora do app pelo compartilhar do celular) |
 | Denúncia/moderação e notificações push | A fazer |
 
 Decisões já tomadas: Firebase só para login; dados na API em casa com MongoDB (sem Docker);
@@ -56,6 +57,9 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 - Fotos de lugares: quem tem check-in no lugar posta uma foto (JPEG, PNG ou WebP, até 10 MB) com legenda
   opcional. Ela aparece na página do lugar e no perfil de quem postou, e fica em `MEDIA_DIR/photos/`.
   O perfil de outra pessoa mostra nome, "sobre mim", números de check-ins, lugares e fotos, mas não o e-mail.
+- Recomendações: "amigos" são os contatos, pessoas com quem você já tem conversa aceita. Recomendar um lugar
+  manda uma mensagem na conversa com cada contato escolhido, com um cartão que abre a página do lugar; não
+  precisa estar no lugar. Para quem não usa o app, o botão "Compartilhar fora do app" manda nome e link do mapa.
 
 ## Estrutura
 
@@ -103,6 +107,8 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `POST /places/:placeId/menus` | Sim | Envia cardápio (multipart, campo `file`); exige check-in no lugar |
 | `POST /menus/:id/outdated` | Sim | Marca ou desmarca como desatualizado |
 | `DELETE /menus/:id` | Sim | Quem enviou apaga |
+| `GET /me/contacts` | Sim | Contatos (conversas aceitas), para escolher a quem recomendar |
+| `POST /places/:placeId/recommendations` | Sim | Recomenda o lugar (`{ userIds, note? }`) como mensagem para cada contato |
 | `GET /users/:id` | Sim | Perfil público de alguém, com números de check-ins, lugares e fotos |
 | `GET /users/:id/photos?before=` | Sim | Fotos postadas pela pessoa, da mais recente (30 por vez) |
 | `GET /places/:placeId/photos?before=` | Sim | Fotos do lugar, da mais recente (30 por vez) |

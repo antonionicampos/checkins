@@ -1,8 +1,9 @@
 import { REALTIME_EVENTS, type Conversation, type Message } from '@checkins/shared';
-import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Link, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChatView, mergeMessages } from '../../components/ChatView';
+import { useReport } from '../../components/ReportSheet';
 import { getConversation, getMessages, sendMessage } from '../../lib/api';
 import { useRealtime, useRealtimeReconnect } from '../../lib/realtime';
 
@@ -11,6 +12,7 @@ export default function ConversationScreen() {
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const reporter = useReport();
 
   const load = useCallback(async () => {
     try {
@@ -66,7 +68,21 @@ export default function ConversationScreen() {
   const other = conversation.other;
   return (
     <>
-      <Stack.Screen options={{ title: other.displayName }} />
+      <Stack.Screen
+        options={{
+          title: other.displayName,
+          // No perfil dá para denunciar ou bloquear a pessoa.
+          headerRight: () =>
+            other.id ? (
+              <Link href={{ pathname: '/profile/[id]', params: { id: other.id } }} asChild>
+                <Pressable hitSlop={8}>
+                  <Text style={styles.link}>Perfil</Text>
+                </Pressable>
+              </Link>
+            ) : null,
+        }}
+      />
+      {reporter.sheet}
       <ChatView
         // Compara com a outra pessoa da conversa (sempre carregada aqui) em vez do meu perfil,
         // que pode ainda não ter carregado e fazia todas as mensagens aparecerem como da outra pessoa.
@@ -80,6 +96,7 @@ export default function ConversationScreen() {
         }
         onSend={accepted ? send : undefined}
         error={error}
+        onLongPressMessage={(m) => reporter.open({ type: 'message', id: m.id, label: 'esta mensagem' })}
       />
     </>
   );
@@ -88,4 +105,5 @@ export default function ConversationScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   error: { color: '#b42318' },
+  link: { color: '#1f6feb', fontWeight: '600' },
 });

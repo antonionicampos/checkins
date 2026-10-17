@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { deleteMenu, getMenus, mediaUrl, toggleMenuOutdated, uploadMenu } from '../lib/api';
+import { useReport } from './ReportSheet';
 
 interface Props {
   placeId: string;
@@ -21,6 +22,7 @@ export function MenuSection({ placeId, present }: Props) {
   const [menus, setMenus] = useState<Menu[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const reporter = useReport();
 
   const load = useCallback(async () => {
     try {
@@ -99,6 +101,7 @@ export function MenuSection({ placeId, present }: Props) {
 
   return (
     <View style={styles.section}>
+      {reporter.sheet}
       <Text style={styles.sectionTitle}>Cardápio</Text>
       {menus === null ? (
         <ActivityIndicator />
@@ -130,9 +133,13 @@ export function MenuSection({ placeId, present }: Props) {
                   {m.markedOutdatedByMe ? 'Desfazer "desatualizado"' : 'Marcar como desatualizado'}
                 </Text>
               </Pressable>
-              {m.mine && (
+              {m.mine ? (
                 <Pressable onPress={() => remove(m)}>
                   <Text style={styles.danger}>Apagar</Text>
+                </Pressable>
+              ) : (
+                <Pressable onPress={() => reporter.open({ type: 'menu', id: m.id, label: 'este cardápio' })}>
+                  <Text style={styles.muted}>Denunciar</Text>
                 </Pressable>
               )}
             </View>

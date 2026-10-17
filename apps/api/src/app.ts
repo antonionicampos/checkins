@@ -14,6 +14,7 @@ import { photoRoutes } from './routes/photos.js';
 import { userRoutes } from './routes/users.js';
 import { healthRoutes } from './routes/health.js';
 import { meRoutes } from './routes/me.js';
+import { moderationRoutes } from './routes/moderation.js';
 import { placeRoutes } from './routes/places.js';
 
 export interface AppDeps {
@@ -63,6 +64,7 @@ export async function buildApp(
   await app.register(menuRoutes(config.MEDIA_DIR));
   await app.register(photoRoutes(config.MEDIA_DIR));
   await app.register(userRoutes);
+  await app.register(moderationRoutes);
 
   return app;
 }

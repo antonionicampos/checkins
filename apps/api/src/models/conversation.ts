@@ -50,6 +50,8 @@ const messageSchema = new Schema(
 );
 
 messageSchema.index({ conversationId: 1, createdAt: -1 });
+// Limite de mensagens por minuto de cada pessoa.
+messageSchema.index({ senderId: 1, createdAt: -1 });
 
 export type MessageDoc = HydratedDocument<InferSchemaType<typeof messageSchema>>;
 export const MessageModel = model('Message', messageSchema);

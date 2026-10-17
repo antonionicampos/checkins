@@ -1,8 +1,10 @@
 import type {
+  BlocksResponse,
   Checkin,
   Contact,
   Conversation,
   CreateGroupInput,
+  CreateReportInput,
   Group,
   GroupDetail,
   GroupMessage,
@@ -248,4 +250,20 @@ export function getContacts() {
 
 export function recommendPlace(placeId: string, input: RecommendPlaceInput) {
   return request<{ sent: number }>(`/places/${placeId}/recommendations`, { method: 'POST', body: JSON.stringify(input) });
+}
+
+export async function report(input: CreateReportInput) {
+  await request<{ ok: true }>('/reports', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function getBlocks() {
+  return request<BlocksResponse>('/me/blocks');
+}
+
+export function blockUser(userId: string) {
+  return requestNoContent(`/users/${userId}/block`, 'POST');
+}
+
+export function unblockUser(userId: string) {
+  return requestNoContent(`/users/${userId}/block`, 'DELETE');
 }

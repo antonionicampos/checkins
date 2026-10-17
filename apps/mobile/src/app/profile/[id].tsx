@@ -1,8 +1,9 @@
 import { BIO_MAX_LENGTH, type Photo, type Profile } from '@checkins/shared';
-import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Link, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Pressable,
   RefreshControl,
@@ -14,7 +15,8 @@ import {
 } from 'react-native';
 import { useAuth } from '../../auth/AuthProvider';
 import { PhotoGrid } from '../../components/PhotoGrid';
-import { getProfile, getUserPhotos, updateMe } from '../../lib/api';
+import { useReport } from '../../components/ReportSheet';
+import { blockUser, getProfile, getUserPhotos, unblockUser, updateMe } from '../../lib/api';
 
 function plural(n: number, one: string, many: string) {
   return `${n} ${n === 1 ? one : many}`;
@@ -35,6 +37,7 @@ export default function ProfileScreen() {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [saving, setSaving] = useState(false);
+  const reporter = useReport();
 
   const load = useCallback(async () => {
     try {
@@ -91,6 +94,32 @@ export default function ProfileScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function toggleBlock() {
+    if (!profile) return;
+    if (profile.blockedByMe) {
+      unblockUser(profile.id)
+        .then(load)
+        .catch((err: Error) => setError(err.message));
+      return;
+    }
+    Alert.alert(
+      `Bloquear ${profile.displayName}?`,
+      'Vocês deixam de se ver no local, nas fotos e nos comentários, e a conversa entre vocês some. Ela não é avisada.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Bloquear',
+          style: 'destructive',
+          onPress: () => {
+            blockUser(profile.id)
+              .then(load)
+              .catch((err: Error) => setError(err.message));
+          },
+        },
+      ],
+    );
   }
 
   if (!profile) {
@@ -195,11 +224,28 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {profile.isMe && (
-        <Pressable style={styles.secondaryButton} onPress={signOut}>
-          <Text style={styles.danger}>Sair da conta</Text>
-        </Pressable>
+      {profile.isMe ? (
+        <>
+          <Link href="/blocked" asChild>
+            <Pressable style={styles.secondaryButton}>
+              <Text style={styles.secondaryText}>Pessoas bloqueadas</Text>
+            </Pressable>
+          </Link>
+          <Pressable style={styles.secondaryButton} onPress={signOut}>
+            <Text style={styles.danger}>Sair da conta</Text>
+          </Pressable>
+        </>
+      ) : (
+        <View style={styles.actions}>
+          <Pressable onPress={toggleBlock}>
+            <Text style={styles.danger}>{profile.blockedByMe ? 'Desbloquear' : 'Bloquear'}</Text>
+          </Pressable>
+          <Pressable onPress={() => reporter.open({ type: 'user', id: profile.id, label: profile.displayName })}>
+            <Text style={styles.danger}>Denunciar perfil</Text>
+          </Pressable>
+        </View>
       )}
+      {reporter.sheet}
     </ScrollView>
   );
 }

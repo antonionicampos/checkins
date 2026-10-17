@@ -29,6 +29,7 @@ export const userRoutes: FastifyPluginAsync = async (app) => {
       photoUrl: user.photoUrl ?? undefined,
       bio: user.bio || undefined,
       isMe: String(user._id) === String(me._id),
+      blockedByMe: me.blockedIds.some((id) => String(id) === String(user._id)),
       checkinCount,
       placeCount: places.length,
       photoCount,

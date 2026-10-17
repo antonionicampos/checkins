@@ -28,6 +28,8 @@ export const profileSchema = z.object({
   bio: z.string().optional(),
   /** Se é o perfil de quem está vendo (então pode editar). */
   isMe: z.boolean(),
+  /** Se quem está vendo bloqueou essa pessoa. */
+  blockedByMe: z.boolean(),
   checkinCount: z.number(),
   /** Quantos lugares diferentes a pessoa já visitou. */
   placeCount: z.number(),

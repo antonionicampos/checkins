@@ -34,6 +34,8 @@ export const messageSchema = z.object({
   conversationId: z.string(),
   senderId: z.string(),
   text: z.string(),
+  /** Lugar recomendado nesta mensagem; o app mostra um cartão que abre a página do lugar. */
+  place: z.object({ id: z.string(), name: z.string() }).optional(),
   createdAt: z.string(),
 });
 export type Message = z.infer<typeof messageSchema>;
@@ -52,6 +54,20 @@ export const conversationSchema = z.object({
   updatedAt: z.string(),
 });
 export type Conversation = z.infer<typeof conversationSchema>;
+
+/** Corpo de POST /places/:placeId/recommendations: recomenda o lugar para contatos, com um recado opcional. */
+export const recommendPlaceSchema = z.object({
+  userIds: z.array(z.string()).min(1).max(20),
+  note: z.string().trim().max(MESSAGE_MAX_LENGTH).optional(),
+});
+export type RecommendPlaceInput = z.infer<typeof recommendPlaceSchema>;
+
+/** Contato: alguém com quem já tenho conversa aceita. É para essas pessoas que dá para recomendar lugares. */
+export const contactSchema = z.object({
+  user: checkinAuthorSchema,
+  conversationId: z.string(),
+});
+export type Contact = z.infer<typeof contactSchema>;
 
 /** Eventos do Socket.IO que a API manda para cada pessoa da conversa. */
 export const REALTIME_EVENTS = {

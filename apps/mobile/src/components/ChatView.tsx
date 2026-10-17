@@ -1,4 +1,5 @@
 import { MESSAGE_MAX_LENGTH } from '@checkins/shared';
+import { router } from 'expo-router';
 import { useRef, useState, type ReactNode } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +12,8 @@ export interface ChatItem {
   mine: boolean;
   /** Nome de quem mandou, mostrado acima do balão (nos grupos). */
   senderName?: string;
+  /** Lugar recomendado na mensagem: vira um cartão que abre a página do lugar. */
+  place?: { id: string; name: string };
 }
 
 /** Junta mensagens novas sem repetir (a mesma pode chegar pela resposta da API e pelo tempo real). */
@@ -75,6 +78,16 @@ export function ChatView({ messages, emptyText, onSend, error, header }: Props) 
               {showName && <Text style={styles.sender}>{item.senderName}</Text>}
               <View style={[styles.bubble, item.mine ? styles.mine : styles.theirs]}>
                 <Text style={item.mine ? styles.mineText : undefined}>{item.text}</Text>
+                {item.place && (
+                  <Pressable
+                    style={styles.placeCard}
+                    onPress={() => router.push({ pathname: '/place/[id]', params: { id: item.place!.id, name: item.place!.name } })}
+                  >
+                    <Text style={styles.placeLabel}>Lugar recomendado</Text>
+                    <Text style={styles.placeName}>{item.place.name}</Text>
+                    <Text style={styles.placeLink}>Ver o lugar</Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           );
@@ -114,6 +127,10 @@ const styles = StyleSheet.create({
   mine: { backgroundColor: '#1f6feb' },
   theirs: { backgroundColor: '#f2f4f7' },
   mineText: { color: '#fff' },
+  placeCard: { marginTop: 8, padding: 10, borderRadius: 10, backgroundColor: '#fff', gap: 2, minWidth: 180 },
+  placeLabel: { fontSize: 12, color: '#666' },
+  placeName: { fontWeight: '700', color: '#101828' },
+  placeLink: { color: '#1f6feb', fontWeight: '600' },
   composer: { flexDirection: 'row', gap: 8, padding: 12, borderTopWidth: 1, borderColor: '#eaecf0' },
   input: {
     flex: 1,

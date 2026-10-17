@@ -167,4 +167,55 @@ describe.skipIf(!TEST_MONGO_URL)('conversa direta', async () => {
       400,
     );
   });
+
+  /** Ana e Bia no bar, com conversa aceita; devolve o id da conversa e o da Bia. */
+  async function friends() {
+    await arrive('ana');
+    const biaId = await arrive('bia');
+    const id = (await invite('ana', biaId)).json().id;
+    await call('bia', 'POST', `/conversations/${id}/accept`);
+    return { id, biaId };
+  }
+
+  it('lista contatos só com conversas aceitas', async () => {
+    const { id, biaId } = await friends();
+    const caioId = await arrive('caio');
+    await invite('ana', caioId);
+
+    const res = await call('ana', 'GET', '/me/contacts');
+    expect(res.json().contacts).toEqual([{ conversationId: id, user: expect.objectContaining({ id: biaId, displayName: 'bia' }) }]);
+  });
+
+  it('recomenda um lugar para um contato, como mensagem com o cartão do lugar', async () => {
+    const { id, biaId } = await friends();
+    events.length = 0;
+
+    // Recomendar não exige estar no lugar.
+    const res = await call('ana', 'POST', `/places/${otherBarId}/recommendations`, { userIds: [biaId], note: 'Vai lá!' });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toEqual({ sent: 1 });
+
+    const messages = (await call('bia', 'GET', `/conversations/${id}/messages`)).json().messages;
+    expect(messages.at(-1)).toMatchObject({ text: 'Vai lá!', place: { id: otherBarId, name: 'Outro bar' } });
+    expect(events.filter((e) => e.event === 'message:new').map((e) => e.uid).sort()).toEqual(['ana', 'bia']);
+
+    const noNote = await call('ana', 'POST', `/places/${otherBarId}/recommendations`, { userIds: [biaId] });
+    expect(noNote.json()).toEqual({ sent: 1 });
+    const conversation = (await call('bia', 'GET', `/conversations/${id}`)).json();
+    expect(conversation.lastMessage.text).toBe('Recomendo Outro bar');
+  });
+
+  it('recusa recomendar para quem não é contato e para lugar que não existe', async () => {
+    const { biaId } = await friends();
+    const caioId = await arrive('caio');
+    await invite('ana', caioId);
+
+    const pending = await call('ana', 'POST', `/places/${barId}/recommendations`, { userIds: [biaId, caioId] });
+    expect(pending.statusCode).toBe(422);
+    expect(await MessageModel.countDocuments({ place: { $exists: true } })).toBe(0);
+
+    const missing = await call('ana', 'POST', '/places/64b000000000000000000000/recommendations', { userIds: [biaId] });
+    expect(missing.statusCode).toBe(404);
+    expect((await call('ana', 'POST', `/places/${barId}/recommendations`, { userIds: [] })).statusCode).toBe(400);
+  });
 });

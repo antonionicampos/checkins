@@ -3,6 +3,7 @@ import { Link, router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChatView, mergeMessages } from '../../../components/ChatView';
+import { IconButton } from '../../../components/IconButton';
 import { useReport } from '../../../components/ReportSheet';
 import { ApiError, getBlocks, getGroup, getGroupMessages, joinGroup, sendGroupMessage } from '../../../lib/api';
 import { expiryLabel } from '../../../lib/groups';
@@ -82,9 +83,7 @@ export default function GroupScreen() {
     return (
       <View style={styles.center}>
         <Text style={styles.muted}>{gone}</Text>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.link}>Voltar</Text>
-        </Pressable>
+        <IconButton icon="arrow-back" label="Voltar" onPress={() => router.back()} />
       </View>
     );
   }
@@ -119,9 +118,7 @@ export default function GroupScreen() {
           title: group.name,
           headerRight: () => (
             <Link href={{ pathname: '/groups/[id]/members', params: { id } }} asChild>
-              <Pressable hitSlop={8}>
-                <Text style={styles.link}>Membros</Text>
-              </Pressable>
+              <IconButton icon="people-outline" label="Membros do grupo" />
             </Link>
           ),
         }}
@@ -147,7 +144,6 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
   header: { padding: 12, gap: 6, borderBottomWidth: 1, borderColor: '#eaecf0' },
   muted: { color: '#666' },
-  link: { color: '#1f6feb', fontWeight: '600' },
   button: { backgroundColor: '#1f6feb', borderRadius: 8, padding: 12, alignItems: 'center' },
   buttonText: { color: '#fff', fontWeight: '600' },
   error: { color: '#b42318' },

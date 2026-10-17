@@ -19,7 +19,8 @@ export function registerAuth(app: FastifyInstance, verifyToken: VerifyToken) {
     try {
       req.identity = await verifyToken(token);
     } catch (err) {
-      req.log.debug({ err }, 'token recusado');
+      // O motivo (token vencido, projeto errado, relógio fora de hora) fica no log para investigar.
+      req.log.info({ reason: (err as Error).message }, 'token recusado');
       throw new UnauthorizedError('Sessão inválida ou expirada; faça login de novo');
     }
   } satisfies preHandlerHookHandler);

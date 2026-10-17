@@ -3,7 +3,8 @@ import { Link, router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ChatView, mergeMessages } from '../../../components/ChatView';
-import { ApiError, getGroup, getGroupMessages, joinGroup, sendGroupMessage } from '../../../lib/api';
+import { useReport } from '../../../components/ReportSheet';
+import { ApiError, getBlocks, getGroup, getGroupMessages, joinGroup, sendGroupMessage } from '../../../lib/api';
 import { expiryLabel } from '../../../lib/groups';
 import { useRealtime, useRealtimeReconnect } from '../../../lib/realtime';
 
@@ -14,6 +15,15 @@ export default function GroupScreen() {
   const [error, setError] = useState<string | null>(null);
   /** O grupo acabou ou a pessoa foi removida. */
   const [gone, setGone] = useState<string | null>(null);
+  /** Quem eu bloqueei: a API já não manda as mensagens antigas, e aqui filtro as que chegam em tempo real. */
+  const [blocked, setBlocked] = useState<Set<string>>(new Set());
+  const reporter = useReport();
+
+  useEffect(() => {
+    getBlocks()
+      .then(({ users }) => setBlocked(new Set(users.map((u) => u.id))))
+      .catch(() => {});
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -42,7 +52,7 @@ export default function GroupScreen() {
   useRealtimeReconnect(() => void load());
 
   useRealtime<GroupMessage>(GROUP_EVENTS.message, (m) => {
-    if (m.groupId === id) setMessages((current) => mergeMessages(current, [m]));
+    if (m.groupId === id && !blocked.has(m.sender.id)) setMessages((current) => mergeMessages(current, [m]));
   });
   useRealtime<{ groupId: string }>(GROUP_EVENTS.updated, (e) => {
     if (e.groupId === id) void load();
@@ -116,8 +126,10 @@ export default function GroupScreen() {
           ),
         }}
       />
+      {reporter.sheet}
       <ChatView
         header={header}
+        onLongPressMessage={(m) => reporter.open({ type: 'groupMessage', id: m.id, label: 'esta mensagem' })}
         messages={messages.map((m) => ({ ...m, mine: m.sender.id === group.viewerId, senderName: m.sender.displayName }))}
         emptyText={
           group.isMember

@@ -12,7 +12,8 @@
     "seed": "tsx --env-file-if-exists=../../.env src/scripts/seed.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "import:osm": "tsx --env-file-if-exists=../../.env src/scripts/import-osm.ts"
+    "import:osm": "tsx --env-file-if-exists=../../.env src/scripts/import-osm.ts",
+    "moderation": "tsx --env-file-if-exists=../../.env src/scripts/moderation.ts"
   },
   "dependencies": {
     "@checkins/shared": "*",

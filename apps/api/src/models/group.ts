@@ -41,6 +41,7 @@ const groupMessageSchema = new Schema(
 
 groupMessageSchema.index({ groupId: 1, createdAt: -1 });
 groupMessageSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+groupMessageSchema.index({ senderId: 1, createdAt: -1 });
 
 export type GroupMessageDoc = HydratedDocument<InferSchemaType<typeof groupMessageSchema>>;
 export const GroupMessageModel = model('GroupMessage', groupMessageSchema);

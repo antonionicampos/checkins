@@ -22,7 +22,8 @@ fotos e cardápios.
 | Cardápio em foto ou PDF (salvo no disco de casa) | Pronto (data de envio, marcar como desatualizado) |
 | Perfil com fotos dos lugares | Pronto (fotos postadas com check-in, "sobre mim", números de check-ins e lugares) |
 | Recomendar um lugar a amigos | Pronto (para contatos do app, como cartão no chat, ou fora do app pelo compartilhar do celular) |
-| Denúncia/moderação e notificações push | A fazer |
+| Denúncia, bloqueio e moderação | Pronto (moderação pelo terminal com `npm run moderation`) |
+| Notificações push | A fazer |
 
 Decisões já tomadas: Firebase só para login; dados na API em casa com MongoDB (sem Docker);
 lugares do OpenStreetMap; fotos e cardápios no disco da máquina de casa.
@@ -114,6 +115,9 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `GET /places/:placeId/photos?before=` | Sim | Fotos do lugar, da mais recente (30 por vez) |
 | `POST /places/:placeId/photos` | Sim | Posta foto (multipart: `caption` opcional e depois `file`); exige check-in no lugar |
 | `DELETE /photos/:id` | Sim | Quem postou apaga |
+| `POST /reports` | Sim | Denuncia pessoa, foto, cardápio, comentário, mensagem ou grupo (`{ targetType, targetId, reason, details? }`) |
+| `GET /me/blocks` | Sim | Pessoas que bloqueei |
+| `POST` e `DELETE /users/:id/block` | Sim | Bloqueia ou desbloqueia alguém |
 | `GET /media/menus/:arquivo` e `/media/photos/:arquivo` | Não | Os arquivos de cardápios e fotos |
 
 O Socket.IO exige o token na conexão: `io(url, { auth: { token } })`. Cada pessoa entra na sua sala ao conectar e
@@ -204,6 +208,22 @@ o túnel para `http://localhost:3000`. O MongoDB nunca fica exposto.
 
 O `CLAUDE.md` descreve a arquitetura e as regras do projeto: uma funcionalidade por PR, com testes,
 entradas da API validadas pelos schemas de `packages/shared` e textos para o usuário em português.
+
+## Moderação
+
+Denúncias vão para o MongoDB e aparecem no log da API (`nova denúncia`). Para revisar, rode na máquina de casa:
+
+```bash
+npm run moderation -w @checkins/api                       # lista as denúncias abertas, juntas por conteúdo
+npm run moderation -w @checkins/api -- remover <id>       # apaga o conteúdo (pessoa denunciada é suspensa)
+npm run moderation -w @checkins/api -- descartar <id>     # fecha o caso sem mexer em nada
+npm run moderation -w @checkins/api -- suspender <userId> [motivo]
+npm run moderation -w @checkins/api -- reativar <userId>
+```
+
+Conta suspensa recebe 403 em todas as rotas. Bloqueio vale para os dois lados: quem bloqueia e quem foi
+bloqueado deixam de se ver na presença, nas fotos e nos comentários, e a conversa entre eles some e não aceita
+mensagens. Cada pessoa manda no máximo 20 mensagens por minuto (conversas e grupos somados).
 
 ## Lugares do OpenStreetMap
 

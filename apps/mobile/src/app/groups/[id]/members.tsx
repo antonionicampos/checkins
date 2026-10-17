@@ -2,9 +2,11 @@ import type { GroupDetail } from '@checkins/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useReport } from '../../../components/ReportSheet';
 import { closeGroup, getGroup, leaveGroup, removeGroupMember } from '../../../lib/api';
 
 export default function GroupMembersScreen() {
+  const reporter = useReport();
   const { id } = useLocalSearchParams<{ id: string }>();
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,11 +58,13 @@ export default function GroupMembersScreen() {
         const isAdmin = item.id === group.admin.id;
         return (
           <View style={styles.row}>
-            <Text style={styles.name}>
-              {item.displayName}
-              {item.id === group.viewerId ? ' (você)' : ''}
-              {isAdmin ? ' · administra' : ''}
-            </Text>
+            <Pressable onPress={() => router.push({ pathname: '/profile/[id]', params: { id: item.id } })}>
+              <Text style={styles.name}>
+                {item.displayName}
+                {item.id === group.viewerId ? ' (você)' : ''}
+                {isAdmin ? ' · administra' : ''}
+              </Text>
+            </Pressable>
             {group.isAdmin && !isAdmin && (
               <Pressable
                 onPress={() =>
@@ -104,6 +108,12 @@ export default function GroupMembersScreen() {
               <Text style={styles.dangerButtonText}>Sair do grupo</Text>
             </Pressable>
           ) : null}
+          {!group.isAdmin && (
+            <Pressable onPress={() => reporter.open({ type: 'group', id, label: 'este grupo' })}>
+              <Text style={styles.reportLink}>Denunciar grupo</Text>
+            </Pressable>
+          )}
+          {reporter.sheet}
         </View>
       }
     />
@@ -111,6 +121,7 @@ export default function GroupMembersScreen() {
 }
 
 const styles = StyleSheet.create({
+  reportLink: { color: '#b42318', fontWeight: '600', textAlign: 'center', marginTop: 8 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   list: { padding: 16, gap: 8 },
   muted: { color: '#666', marginBottom: 8 },

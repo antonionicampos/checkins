@@ -12,9 +12,17 @@ const userSchema = new Schema(
     /** Texto curto "sobre mim" do perfil. */
     bio: { type: String, trim: true, maxlength: 160 },
     providers: { type: [String], default: [] },
+    /** Pessoas que este usuário bloqueou: uma não vê nem conversa com a outra. */
+    blockedIds: { type: [Schema.Types.ObjectId], ref: 'User', default: [] },
+    /** Conta suspensa pela moderação: a API recusa tudo dela. */
+    bannedAt: { type: Date },
+    banReason: { type: String },
   },
   { timestamps: true },
 );
+
+// Quem me bloqueou (para o bloqueio valer nos dois lados).
+userSchema.index({ blockedIds: 1 });
 
 export type UserDoc = HydratedDocument<InferSchemaType<typeof userSchema>>;
 
@@ -46,5 +54,24 @@ export async function findOrCreateUser(identity: AuthIdentity): Promise<UserDoc>
     },
     { upsert: true, returnDocument: 'after' },
   );
+  if (doc!.bannedAt) throw new BannedError();
   return doc!;
+}
+
+/** Conta suspensa; o tratador de erros da API devolve 403 com esta mensagem. */
+export class BannedError extends Error {
+  readonly statusCode = 403;
+  constructor() {
+    super('Sua conta foi suspensa pela moderação');
+  }
+}
+
+
+/**
+ * Ids de quem eu bloqueei e de quem me bloqueou. Bloqueio vale para os dois lados:
+ * ninguém do par vê o outro na presença, nas fotos e nos comentários, nem conversa com ele.
+ */
+export async function blockedEitherWay(me: UserDoc): Promise<Set<string>> {
+  const blockedMe = await UserModel.find({ blockedIds: me._id }, { _id: 1 });
+  return new Set([...me.blockedIds.map(String), ...blockedMe.map((u) => String(u._id))]);
 }

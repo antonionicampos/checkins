@@ -32,10 +32,12 @@ interface Props {
   error?: string | null;
   /** Algo para mostrar acima das mensagens (ex.: dados do grupo). */
   header?: ReactNode;
+  /** Toque longo numa mensagem de outra pessoa (para denunciar). */
+  onLongPressMessage?: (item: ChatItem) => void;
 }
 
 /** Tela de chat: lista com a mensagem mais nova embaixo e a caixa de texto acima do teclado. */
-export function ChatView({ messages, emptyText, onSend, error, header }: Props) {
+export function ChatView({ messages, emptyText, onSend, error, header, onLongPressMessage }: Props) {
   const insets = useSafeAreaInsets();
   const rootRef = useRef<View>(null);
   const keyboard = useKeyboardOverlap(rootRef);
@@ -76,7 +78,10 @@ export function ChatView({ messages, emptyText, onSend, error, header }: Props) 
           return (
             <View style={[styles.bubbleWrap, item.mine ? styles.right : styles.left]}>
               {showName && <Text style={styles.sender}>{item.senderName}</Text>}
-              <View style={[styles.bubble, item.mine ? styles.mine : styles.theirs]}>
+              <Pressable
+                style={[styles.bubble, item.mine ? styles.mine : styles.theirs]}
+                onLongPress={!item.mine && onLongPressMessage ? () => onLongPressMessage(item) : undefined}
+              >
                 <Text style={item.mine ? styles.mineText : undefined}>{item.text}</Text>
                 {item.place && (
                   <Pressable
@@ -88,7 +93,7 @@ export function ChatView({ messages, emptyText, onSend, error, header }: Props) 
                     <Text style={styles.placeLink}>Ver o lugar</Text>
                   </Pressable>
                 )}
-              </View>
+              </Pressable>
             </View>
           );
         }}

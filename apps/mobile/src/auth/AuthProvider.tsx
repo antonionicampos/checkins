@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { getMe, setSessionExpiredHandler } from '../lib/api';
 import { auth } from '../lib/firebase';
 import { signOutFromGoogle } from '../lib/google';
+import { registerForPush, unregisterForPush } from '../lib/push';
 import { closeRealtime } from '../lib/realtime';
 
 interface AuthState {
@@ -44,13 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfile(null);
         if (user) setSignInNotice(null);
         setInitializing(false);
-        if (user) void refreshProfile();
+        if (user) {
+          void refreshProfile();
+          void registerForPush();
+        }
       }),
     [refreshProfile],
   );
 
   const signOut = useCallback(async () => {
     closeRealtime();
+    // Antes de sair do Firebase: a API precisa do token de login para remover o aparelho.
+    await unregisterForPush();
     await signOutFromGoogle();
     await firebaseSignOut(auth);
   }, []);

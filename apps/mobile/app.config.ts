@@ -23,6 +23,8 @@ const config: ExpoConfig = {
     },
     predictiveBackGestureEnabled: false,
   },
+  // Projeto no EAS: sem ele o app não consegue o token para receber notificações push.
+  extra: { eas: { projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || undefined } },
   web: {
     favicon: './assets/favicon.png',
   },
@@ -42,6 +44,7 @@ const config: ExpoConfig = {
         cameraPermission: 'Usamos a câmera para você fotografar o cardápio de um lugar.',
       },
     ],
+    ['expo-notifications', { color: '#1f6feb' }],
     [
       '@react-native-google-signin/google-signin',
       // "Reversed client ID" do cliente iOS no Google Cloud; só é usado no build para iPhone.

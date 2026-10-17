@@ -23,7 +23,7 @@ fotos e cardápios.
 | Perfil com fotos dos lugares | Pronto (fotos postadas com check-in, "sobre mim", números de check-ins e lugares) |
 | Recomendar um lugar a amigos | Pronto (para contatos do app, como cartão no chat, ou fora do app pelo compartilhar do celular) |
 | Denúncia, bloqueio e moderação | Pronto (moderação pelo terminal com `npm run moderation`) |
-| Notificações push | A fazer |
+| Notificações push | Pronto (convites, aceite, mensagens e grupos); precisa do build de desenvolvimento e do projeto no EAS |
 
 Decisões já tomadas: Firebase só para login; dados na API em casa com MongoDB (sem Docker);
 lugares do OpenStreetMap; fotos e cardápios no disco da máquina de casa.
@@ -118,6 +118,7 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `POST /reports` | Sim | Denuncia pessoa, foto, cardápio, comentário, mensagem ou grupo (`{ targetType, targetId, reason, details? }`) |
 | `GET /me/blocks` | Sim | Pessoas que bloqueei |
 | `POST` e `DELETE /users/:id/block` | Sim | Bloqueia ou desbloqueia alguém |
+| `POST` e `DELETE /me/push-tokens` | Sim | Liga ou desliga as notificações deste aparelho (`{ token }`, token do Expo Push) |
 | `GET /media/menus/:arquivo` e `/media/photos/:arquivo` | Não | Os arquivos de cardápios e fotos |
 
 O Socket.IO exige o token na conexão: `io(url, { auth: { token } })`. Cada pessoa entra na sua sala ao conectar e
@@ -142,10 +143,12 @@ Copie `.env.example` para `.env` (raiz, usado pela API) e `apps/mobile/.env.exam
 | `FIREBASE_PROJECT_ID` | `.env` | ID do projeto no Firebase, para validar os logins |
 | `PORT`, `CORS_ORIGIN` | `.env` | Porta da API (3000) e origens liberadas |
 | `MEDIA_DIR` | `.env` | Pasta das fotos e cardápios no disco de casa (padrão: `media/` na raiz). Entra no backup |
+| `EXPO_ACCESS_TOKEN` | `.env` | Opcional: só se ativar a segurança extra de push no expo.dev |
 | `EXPO_PUBLIC_API_URL` | `apps/mobile/.env` | Endereço da API visto pelo celular (IP da máquina na rede, ou o domínio do túnel) |
 | `EXPO_PUBLIC_FIREBASE_*` | `apps/mobile/.env` | Configuração do app da Web no Firebase |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | `apps/mobile/.env` | Cliente OAuth "Web" do Google, para o login com Google |
 | `GOOGLE_IOS_URL_SCHEME` | `apps/mobile/.env` | Só para iPhone: "reversed client ID" do cliente iOS |
+| `EXPO_PUBLIC_EAS_PROJECT_ID` | `apps/mobile/.env` | ID do projeto no EAS, para receber notificações push |
 
 ### Configurar o login (Firebase)
 
@@ -156,6 +159,22 @@ Copie `.env.example` para `.env` (raiz, usado pela API) e `apps/mobile/.env.exam
 4. Para o Google, copie o "ID do cliente da Web" (em Authentication > Google) para `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`.
    Depois adicione um app **Android** com o pacote `com.antonionicampos.checkins` e a impressão digital SHA-1
    que `npx eas-cli@latest credentials` mostra.
+
+### Configurar as notificações push
+
+A API manda as notificações pelo serviço gratuito do Expo (Expo Push), que entrega pelo Google (Android) e
+pela Apple (iPhone). Quem recebe: o convidado (convite para conversar), quem convidou (convite aceito), a outra
+pessoa da conversa (mensagem nova ou recomendação) e os membros do grupo (mensagem no grupo), menos quem
+bloqueou quem mandou. Tocar na notificação abre a conversa ou o grupo.
+
+1. Rode `npx eas-cli@latest init` em `apps/mobile` e copie o Project ID para `EXPO_PUBLIC_EAS_PROJECT_ID`.
+2. Android: no Firebase, em **Configurações do projeto > Contas de serviço**, gere uma chave privada (JSON) e
+   envie com `npx eas-cli@latest credentials` > Android > Google Service Account > **FCM V1**.
+3. iPhone: precisa da conta paga de desenvolvedor da Apple; o `eas credentials` cria a chave de push (APNs).
+4. Gere um novo build de desenvolvimento (`npx eas-cli@latest build --profile development`). O Expo Go do Android
+   não recebe push; no Expo Go o app funciona normalmente, só sem notificações.
+
+Com o app aberto, a notificação aparece, menos a da conversa ou grupo que você está vendo.
 
 ## Rodando em desenvolvimento
 

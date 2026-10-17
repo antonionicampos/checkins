@@ -7,5 +7,6 @@ export * from './groups.js';
 export * from './menus.js';
 export * from './photos.js';
 export * from './moderation.js';
+export * from './push.js';
 export * from './health.js';
 export * from './users.js';

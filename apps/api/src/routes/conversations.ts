@@ -70,6 +70,15 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
     const dto = toMessageDto(message);
     const users = await UserModel.find({ _id: { $in: doc.participants } });
     for (const u of users) app.notify(u.firebaseUid, REALTIME_EVENTS.messageNew, dto);
+    await app.pushTo(
+      doc.participants.filter((p) => String(p) !== String(me._id)),
+      {
+        title: me.displayName,
+        // Recomendação sem recado já tem o texto "Recomendo <lugar>"; com recado, mostra o lugar e o recado.
+        body: place && text !== `Recomendo ${place.name}` ? `Recomendou ${place.name}: ${text}` : text,
+        data: { url: `/conversations/${doc.id as string}` },
+      },
+    );
     return dto;
   }
 
@@ -125,6 +134,12 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
       placeId: input.placeId,
     });
     await notifyUpdated(doc);
+    const place = await PlaceModel.findById(input.placeId, { name: 1 });
+    await app.pushTo([new Types.ObjectId(input.userId)], {
+      title: 'Convite para conversar',
+      body: `${me.displayName} quer conversar com você${place ? ` em ${place.name}` : ''}`,
+      data: { url: '/conversations' },
+    });
     return reply.code(201).send(await toConversationDto(doc, me));
   });
 
@@ -164,6 +179,14 @@ export const conversationRoutes: FastifyPluginAsync = async (app) => {
       doc.status = action === 'accept' ? 'accepted' : 'declined';
       await doc.save();
       await notifyUpdated(doc);
+      // Recusa não avisa ninguém; aceite avisa quem convidou.
+      if (action === 'accept') {
+        await app.pushTo([doc.requestedBy], {
+          title: 'Convite aceito',
+          body: `${me.displayName} aceitou conversar com você`,
+          data: { url: `/conversations/${doc.id as string}` },
+        });
+      }
       return toConversationDto(doc, me);
     });
   }

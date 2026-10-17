@@ -5,6 +5,7 @@ import type {
   Group,
   GroupDetail,
   GroupMessage,
+  Menu,
   Message,
   CreateCheckinInput,
   HealthResponse,
@@ -39,7 +40,8 @@ async function request<T>(path: string, init: RequestInit = {}, okStatuses: numb
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
     headers: {
-      ...(init.body ? { 'content-type': 'application/json' } : {}),
+      // FormData (envio de arquivo) define o próprio content-type, com o boundary.
+      ...(init.body && !(init.body instanceof FormData) ? { 'content-type': 'application/json' } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...init.headers,
     },
@@ -178,4 +180,29 @@ export function getGroupMessages(groupId: string) {
 
 export function sendGroupMessage(groupId: string, text: string) {
   return request<GroupMessage>(`/groups/${groupId}/messages`, { method: 'POST', body: JSON.stringify({ text }) });
+}
+
+export function getMenus(placeId: string) {
+  return request<{ menus: Menu[] }>(`/places/${placeId}/menus`);
+}
+
+/** Envia o cardápio (foto ou PDF) como multipart; `uri` é o arquivo local escolhido no celular. */
+export async function uploadMenu(placeId: string, file: { uri: string; name: string; mimeType: string }) {
+  const body = new FormData();
+  // No React Native, o FormData aceita { uri, name, type } e lê o arquivo do celular.
+  body.append('file', { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
+  return request<Menu>(`/places/${placeId}/menus`, { method: 'POST', body });
+}
+
+export function toggleMenuOutdated(menuId: string) {
+  return request<Menu>(`/menus/${menuId}/outdated`, { method: 'POST' });
+}
+
+export function deleteMenu(menuId: string) {
+  return requestNoContent(`/menus/${menuId}`, 'DELETE');
+}
+
+/** Endereço completo de um arquivo servido pela API (ex.: a foto do cardápio). */
+export function mediaUrl(path: string) {
+  return `${API_URL}${path}`;
 }

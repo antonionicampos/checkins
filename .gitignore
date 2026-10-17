@@ -6,3 +6,6 @@ coverage/
 .env*.local
 !.env.example
 .DS_Store
+
+# Fotos e cardápios enviados (API em desenvolvimento)
+/media/

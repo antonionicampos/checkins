@@ -1,3 +1,6 @@
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { AuthIdentity } from '../auth/identity.js';
 import { buildApp, type AppDeps } from '../app.js';
 
@@ -19,6 +22,12 @@ export function authHeader(uid: string) {
   return { authorization: `Bearer test:${uid}` };
 }
 
+/** Pasta temporária para os arquivos enviados nos testes. */
+export const TEST_MEDIA_DIR = mkdtempSync(join(tmpdir(), 'checkins-media-'));
+
 export function buildTestApp(deps: Partial<AppDeps> = {}) {
-  return buildApp({ CORS_ORIGIN: '*', LOG_LEVEL: 'silent' }, { verifyToken: fakeVerifyToken, ...deps });
+  return buildApp(
+    { CORS_ORIGIN: '*', LOG_LEVEL: 'silent', MEDIA_DIR: TEST_MEDIA_DIR },
+    { verifyToken: fakeVerifyToken, ...deps },
+  );
 }

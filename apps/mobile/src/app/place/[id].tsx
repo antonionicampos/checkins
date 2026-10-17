@@ -32,6 +32,7 @@ import {
   leavePlace,
   startConversation,
 } from '../../lib/api';
+import { MenuSection } from '../../components/MenuSection';
 import { expiryLabel } from '../../lib/groups';
 import { getCurrentPosition } from '../../lib/location';
 
@@ -285,6 +286,8 @@ export default function PlaceScreen() {
           </Pressable>
         )}
       </View>
+
+      <MenuSection placeId={id} present={presence.present} />
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Comentários recentes</Text>

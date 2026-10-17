@@ -8,6 +8,7 @@ import { noopNotify, type Notify } from './realtime/notify.js';
 import { checkinRoutes } from './routes/checkins.js';
 import { conversationRoutes } from './routes/conversations.js';
 import { groupRoutes } from './routes/groups.js';
+import { menuRoutes } from './routes/menus.js';
 import { healthRoutes } from './routes/health.js';
 import { meRoutes } from './routes/me.js';
 import { placeRoutes } from './routes/places.js';
@@ -27,7 +28,7 @@ declare module 'fastify' {
 
 /** Monta a API sem abrir porta nem conectar no banco, para os testes usarem `app.inject`. */
 export async function buildApp(
-  config: Pick<Config, 'CORS_ORIGIN' | 'LOG_LEVEL'>,
+  config: Pick<Config, 'CORS_ORIGIN' | 'LOG_LEVEL' | 'MEDIA_DIR'>,
   deps: AppDeps,
 ): Promise<FastifyInstance> {
   const app = Fastify({ logger: { level: config.LOG_LEVEL } });
@@ -55,6 +56,7 @@ export async function buildApp(
   await app.register(checkinRoutes);
   await app.register(conversationRoutes);
   await app.register(groupRoutes);
+  await app.register(menuRoutes(config.MEDIA_DIR));
 
   return app;
 }

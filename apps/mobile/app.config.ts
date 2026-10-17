@@ -36,6 +36,13 @@ const config: ExpoConfig = {
       },
     ],
     [
+      'expo-image-picker',
+      {
+        photosPermission: 'Usamos suas fotos para você enviar o cardápio de um lugar.',
+        cameraPermission: 'Usamos a câmera para você fotografar o cardápio de um lugar.',
+      },
+    ],
+    [
       '@react-native-google-signin/google-signin',
       // "Reversed client ID" do cliente iOS no Google Cloud; só é usado no build para iPhone.
       // "||" e não "??": a variável costuma existir vazia no .env.

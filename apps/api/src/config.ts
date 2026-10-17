@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { z } from 'zod';
 
 const envSchema = z.object({
@@ -9,6 +10,8 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('*'),
   /** ID do projeto no Firebase; a API usa só para validar os tokens de login. */
   FIREBASE_PROJECT_ID: z.string().default(''),
+  /** Pasta no disco da máquina de casa onde ficam fotos e cardápios. Padrão: `media/` na raiz do repositório. */
+  MEDIA_DIR: z.string().default(resolve(import.meta.dirname, '../../../media')),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
 

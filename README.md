@@ -19,7 +19,8 @@ fotos e cardápios.
 | Check-in com comentário e nota, quem está no local agora | Pronto (API e tela do lugar no app) |
 | Conversa direta com quem está no local (após aceite) | Pronto (API, lista de conversas e chat no app) |
 | Grupos no local e chat do grupo | Pronto (criar no local, entrar com check-in, administrador, temporário ou sem prazo) |
-| Fotos e cardápios (salvos no disco de casa) | A fazer |
+| Cardápio em foto ou PDF (salvo no disco de casa) | Pronto (data de envio, marcar como desatualizado) |
+| Perfil com fotos dos lugares | A fazer |
 | Denúncia/moderação e notificações push | A fazer |
 
 Decisões já tomadas: Firebase só para login; dados na API em casa com MongoDB (sem Docker);
@@ -48,6 +49,10 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
   no grupo mesmo saindo do lugar. O grupo pode durar 2, 4, 8 ou 24 horas (um índice TTL do MongoDB apaga o
   grupo e as mensagens quando vence) ou não ter prazo. O administrador remove pessoas (que não podem voltar)
   e encerra o grupo.
+- Cardápios: quem tem check-in no lugar envia foto (JPEG, PNG ou WebP) ou PDF de até 10 MB. A API confere o
+  tipo pelo conteúdo do arquivo, grava em `MEDIA_DIR/menus/` com um nome aleatório e serve em `/media/menus/...`
+  sem login (o PDF abre no navegador do celular, que não manda o token). Todo mundo vê a data de envio e
+  pode marcar o cardápio como desatualizado; quem enviou pode apagar.
 
 ## Estrutura
 
@@ -58,7 +63,8 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `apps/mobile/src/auth`, `src/lib` | Contexto de login, Firebase, Google e cliente da API |
 | `apps/api` | API Node.js com Fastify, MongoDB (Mongoose) e Socket.IO |
 | `apps/api/src/routes` | Rotas e seus testes |
-| `apps/api/src/models` | `Place`, `Checkin`, `User`, `Conversation`, `Message`, `Group` e `GroupMessage` |
+| `apps/api/src/models` | `Place`, `Checkin`, `User`, `Conversation`, `Message`, `Group`, `GroupMessage` e `Menu` |
+| `apps/api/src/media` | Gravação dos arquivos enviados no disco |
 | `apps/api/src/auth` | Validação do token do Firebase e `requireAuth` |
 | `apps/api/src/realtime` | Socket.IO |
 | `packages/shared` | Tipos, validações (zod) e constantes usados pelo app e pela API |
@@ -90,6 +96,11 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `DELETE /groups/:id/members/:userId` | Sim | O administrador remove alguém |
 | `DELETE /groups/:id` | Sim | O administrador encerra o grupo |
 | `GET` e `POST /groups/:id/messages` | Sim | Mensagens do grupo, só para membros |
+| `GET /places/:placeId/menus` | Sim | Cardápios do lugar, do mais recente |
+| `POST /places/:placeId/menus` | Sim | Envia cardápio (multipart, campo `file`); exige check-in no lugar |
+| `POST /menus/:id/outdated` | Sim | Marca ou desmarca como desatualizado |
+| `DELETE /menus/:id` | Sim | Quem enviou apaga |
+| `GET /media/menus/:arquivo` | Não | O arquivo do cardápio |
 
 O Socket.IO exige o token na conexão: `io(url, { auth: { token } })`. Cada pessoa entra na sua sala ao conectar e
 recebe `conversation:updated` (convite novo ou respondido), `message:new`, `group:message` e `group:updated`.
@@ -112,6 +123,7 @@ Copie `.env.example` para `.env` (raiz, usado pela API) e `apps/mobile/.env.exam
 | `MONGO_URL_TEST` | `.env` | Banco dos testes. O nome precisa ter "test", porque os testes apagam os dados dele |
 | `FIREBASE_PROJECT_ID` | `.env` | ID do projeto no Firebase, para validar os logins |
 | `PORT`, `CORS_ORIGIN` | `.env` | Porta da API (3000) e origens liberadas |
+| `MEDIA_DIR` | `.env` | Pasta das fotos e cardápios no disco de casa (padrão: `media/` na raiz). Entra no backup |
 | `EXPO_PUBLIC_API_URL` | `apps/mobile/.env` | Endereço da API visto pelo celular (IP da máquina na rede, ou o domínio do túnel) |
 | `EXPO_PUBLIC_FIREBASE_*` | `apps/mobile/.env` | Configuração do app da Web no Firebase |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | `apps/mobile/.env` | Cliente OAuth "Web" do Google, para o login com Google |

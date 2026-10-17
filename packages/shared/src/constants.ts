@@ -1,5 +1,5 @@
 /** Distância máxima (em metros) entre o usuário e o lugar para fazer check-in ou criar grupo. */
-export const PRESENCE_RADIUS_METERS = 100;
+export const PRESENCE_RADIUS_METERS = 300;
 
 /** Por quanto tempo um check-in conta como "presente no local". */
 export const CHECKIN_PRESENCE_HOURS = 3;

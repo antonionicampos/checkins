@@ -39,7 +39,7 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 - O app faz login no Firebase e manda o ID token em toda chamada. A API valida o token com
   firebase-admin (só precisa do `FIREBASE_PROJECT_ID`) e guarda o perfil no MongoDB, ligado ao `firebaseUid`.
 - Localizações ficam em GeoJSON com índice `2dsphere`. Check-in (e, depois, criação de grupo) exige estar
-  a até 100 m do lugar, conferido no servidor, e a presença dura 3 horas (constantes em `packages/shared`).
+  a até 300 m do lugar (raio aumentado para facilitar os testes), conferido no servidor, e a presença dura 3 horas (constantes em `packages/shared`).
 - Só quem está no local vê a lista de quem mais está ali. Quem faz check-in pode escolher não aparecer nela.
 - Conversa direta: quem está no local convida alguém da lista; as mensagens só começam depois que a outra
   pessoa aceita. A conversa continua depois que as duas saem do lugar. Convite recusado não pode ser refeito.
@@ -67,7 +67,7 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `GET /places/:placeId` | Não | Um lugar |
 | `GET /me` | Sim | Perfil de quem está logado; cria o perfil no primeiro acesso |
 | `PATCH /me` | Sim | Muda o nome exibido (`{ "displayName": "..." }`) |
-| `POST /places/:placeId/checkins` | Sim | Check-in (`{ position: { lat, lng }, comment?, rating?, visible? }`); 422 se estiver a mais de 100 m. Encerra a presença anterior |
+| `POST /places/:placeId/checkins` | Sim | Check-in (`{ position: { lat, lng }, comment?, rating?, visible? }`); 422 se estiver a mais de 300 m. Encerra a presença anterior |
 | `DELETE /me/presence` | Sim | Sai do local antes das 3 horas |
 | `GET /places/:placeId/presence` | Sim | Se você está no local e, só nesse caso, quem mais está ali agora |
 | `GET /places/:placeId/checkins` | Sim | Últimos comentários e notas do lugar, com a média |

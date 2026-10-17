@@ -48,6 +48,15 @@ describe.skipIf(!TEST_MONGO_URL)('rotas de lugares', async () => {
     expect(res.json().places.map((p: { name: string }) => p.name)).toEqual(['Perto']);
   });
 
+  it('busca pelo nome sem diferenciar maiúsculas nem acentos', async () => {
+    const url = (q: string) => `/places/nearby?lat=${center.lat}&lng=${center.lng}&radius=500&q=${encodeURIComponent(q)}`;
+    const names = async (q: string) =>
+      (await app.inject({ method: 'GET', url: url(q) })).json().places.map((p: { name: string }) => p.name);
+    expect(await names('CAFE')).toEqual(['Café perto']);
+    expect(await names('per')).toEqual(['Café perto', 'Perto']);
+    expect(await names('(')).toEqual([]);
+  });
+
   it('responde 400 sem latitude e longitude', async () => {
     const res = await app.inject({ method: 'GET', url: '/places/nearby' });
     expect(res.statusCode).toBe(400);

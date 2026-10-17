@@ -94,12 +94,19 @@ export function getHealth() {
   return request<HealthResponse>('/health', {}, [503]);
 }
 
-export function getNearbyPlaces(params: { lat: number; lng: number; radius?: number; category?: PlaceCategory }) {
+export function getNearbyPlaces(params: {
+  lat: number;
+  lng: number;
+  radius?: number;
+  category?: PlaceCategory;
+  q?: string;
+}) {
   const qs = new URLSearchParams({
     lat: String(params.lat),
     lng: String(params.lng),
     ...(params.radius ? { radius: String(params.radius) } : {}),
     ...(params.category ? { category: params.category } : {}),
+    ...(params.q ? { q: params.q } : {}),
   });
   return request<{ places: Place[] }>(`/places/nearby?${qs}`);
 }

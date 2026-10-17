@@ -4,12 +4,13 @@ import {
   PLACE_CATEGORY_LABELS,
   PRESENCE_RADIUS_METERS,
   type Checkin,
+  type Group,
   type Place,
   type PlaceReviewsResponse,
   type PresenceResponse,
 } from '@checkins/shared';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -21,13 +22,24 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { createCheckin, getPlace, getPlaceReviews, getPresence, leavePlace, startConversation } from '../../lib/api';
+import {
+  createCheckin,
+  getPlace,
+  getPlaceGroups,
+  getPlaceReviews,
+  getPresence,
+  joinGroup,
+  leavePlace,
+  startConversation,
+} from '../../lib/api';
+import { expiryLabel } from '../../lib/groups';
 import { getCurrentPosition } from '../../lib/location';
 
 interface Data {
   place: Place;
   presence: PresenceResponse;
   reviews: PlaceReviewsResponse;
+  groups: Group[];
 }
 
 function timeAgo(iso: string): string {
@@ -70,17 +82,25 @@ export default function PlaceScreen() {
 
   const load = useCallback(async () => {
     try {
-      const [place, presence, reviews] = await Promise.all([getPlace(id), getPresence(id), getPlaceReviews(id)]);
-      setData({ place, presence, reviews });
+      const [place, presence, reviews, { groups }] = await Promise.all([
+        getPlace(id),
+        getPresence(id),
+        getPlaceReviews(id),
+        getPlaceGroups(id),
+      ]);
+      setData({ place, presence, reviews, groups });
       setError(null);
     } catch (err) {
       setError((err as Error).message);
     }
   }, [id]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  // Recarrega também ao voltar de outra tela (ex.: depois de criar um grupo).
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
 
   async function refresh() {
     setRefreshing(true);
@@ -134,6 +154,17 @@ export default function PlaceScreen() {
     }
   }
 
+  /** Abre o grupo; quem ainda não é membro entra antes (exige check-in aqui). */
+  async function openGroup(group: Group) {
+    setFormError(null);
+    try {
+      if (!group.isMember) await joinGroup(group.id);
+      router.push({ pathname: '/groups/[id]', params: { id: group.id } });
+    } catch (err) {
+      setFormError((err as Error).message);
+    }
+  }
+
   const title = data?.place.name ?? name ?? '';
 
   if (!data) {
@@ -145,7 +176,7 @@ export default function PlaceScreen() {
     );
   }
 
-  const { place, presence, reviews } = data;
+  const { place, presence, reviews, groups } = data;
 
   return (
     <ScrollView
@@ -230,6 +261,32 @@ export default function PlaceScreen() {
       )}
 
       <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Grupos aqui</Text>
+        {groups.length === 0 ? (
+          <Text style={styles.muted}>Nenhum grupo aberto neste lugar.</Text>
+        ) : (
+          groups.map((g) => (
+            <Pressable key={g.id} style={styles.row} onPress={() => openGroup(g)}>
+              <Text style={styles.rowName}>{g.name}</Text>
+              <Text style={styles.muted}>
+                {g.memberCount} {g.memberCount === 1 ? 'pessoa' : 'pessoas'} · {expiryLabel(g.expiresAt)}
+              </Text>
+              {g.description ? <Text>{g.description}</Text> : null}
+              <Text style={styles.link}>{g.isMember ? 'Abrir' : presence.present ? 'Entrar' : 'Faça check-in para entrar'}</Text>
+            </Pressable>
+          ))
+        )}
+        {presence.present && (
+          <Pressable
+            style={styles.secondaryButton}
+            onPress={() => router.push({ pathname: '/groups/new', params: { placeId: id, placeName: place.name } })}
+          >
+            <Text style={styles.secondaryText}>Criar grupo</Text>
+          </Pressable>
+        )}
+      </View>
+
+      <View style={styles.section}>
         <Text style={styles.sectionTitle}>Comentários recentes</Text>
         {reviews.recent.length === 0 ? (
           <Text style={styles.muted}>Ninguém comentou ainda.</Text>
@@ -262,6 +319,7 @@ const styles = StyleSheet.create({
   secondaryButton: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12, alignItems: 'center' },
   secondaryText: { fontWeight: '600' },
   disabled: { opacity: 0.6 },
+  link: { color: '#1f6feb', fontWeight: '600', marginTop: 2 },
   talkButton: { alignSelf: 'flex-start', marginTop: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#1f6feb' },
   talkText: { color: '#fff', fontWeight: '600' },
   error: { color: '#b42318' },

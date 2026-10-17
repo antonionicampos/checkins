@@ -7,6 +7,7 @@ import type { Config } from './config.js';
 import { noopNotify, type Notify } from './realtime/notify.js';
 import { checkinRoutes } from './routes/checkins.js';
 import { conversationRoutes } from './routes/conversations.js';
+import { groupRoutes } from './routes/groups.js';
 import { healthRoutes } from './routes/health.js';
 import { meRoutes } from './routes/me.js';
 import { placeRoutes } from './routes/places.js';
@@ -53,6 +54,7 @@ export async function buildApp(
   await app.register(meRoutes);
   await app.register(checkinRoutes);
   await app.register(conversationRoutes);
+  await app.register(groupRoutes);
 
   return app;
 }

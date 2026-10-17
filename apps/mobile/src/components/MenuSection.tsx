@@ -36,12 +36,12 @@ export function MenuSection({ placeId, present }: Props) {
     }, [load]),
   );
 
-  async function send(file: { uri: string; name: string; mimeType: string } | null) {
-    if (!file) return;
+  async function send(uri: string | undefined) {
+    if (!uri) return;
     setBusy(true);
     setError(null);
     try {
-      await uploadMenu(placeId, file);
+      await uploadMenu(placeId, uri);
       await load();
     } catch (err) {
       setError((err as Error).message);
@@ -64,13 +64,13 @@ export function MenuSection({ placeId, present }: Props) {
       ? await ImagePicker.launchCameraAsync(options)
       : await ImagePicker.launchImageLibraryAsync(options);
     const asset = result.canceled ? undefined : result.assets[0];
-    await send(asset ? { uri: asset.uri, name: 'cardapio.jpg', mimeType: 'image/jpeg' } : null);
+    await send(asset?.uri);
   }
 
   async function pickPdf() {
     const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf', copyToCacheDirectory: true });
     const asset = result.canceled ? undefined : result.assets[0];
-    await send(asset ? { uri: asset.uri, name: asset.name, mimeType: 'application/pdf' } : null);
+    await send(asset?.uri);
   }
 
   async function toggleOutdated(menu: Menu) {

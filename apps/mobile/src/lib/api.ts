@@ -17,6 +17,7 @@ import type {
   UpdateMeInput,
   User,
 } from '@checkins/shared';
+import { File } from 'expo-file-system';
 import { auth } from './firebase';
 
 /**
@@ -187,10 +188,11 @@ export function getMenus(placeId: string) {
 }
 
 /** Envia o cardápio (foto ou PDF) como multipart; `uri` é o arquivo local escolhido no celular. */
-export async function uploadMenu(placeId: string, file: { uri: string; name: string; mimeType: string }) {
+export async function uploadMenu(placeId: string, uri: string) {
   const body = new FormData();
-  // No React Native, o FormData aceita { uri, name, type } e lê o arquivo do celular.
-  body.append('file', { uri: file.uri, name: file.name, type: file.mimeType } as unknown as Blob);
+  // O fetch do Expo não aceita o formato antigo { uri, name, type } do React Native
+  // ("Unsupported FormDataPart implementation"); o File do expo-file-system funciona como Blob.
+  body.append('file', new File(uri));
   return request<Menu>(`/places/${placeId}/menus`, { method: 'POST', body });
 }
 

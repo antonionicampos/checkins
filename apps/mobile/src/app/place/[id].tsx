@@ -8,8 +8,8 @@ import {
   type PlaceReviewsResponse,
   type PresenceResponse,
 } from '@checkins/shared';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -21,7 +21,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { createCheckin, getPlace, getPlaceReviews, getPresence, leavePlace } from '../../lib/api';
+import { createCheckin, getPlace, getPlaceReviews, getPresence, leavePlace, startConversation } from '../../lib/api';
 import { getCurrentPosition } from '../../lib/location';
 
 interface Data {
@@ -42,7 +42,7 @@ function Stars({ value }: { value: number }) {
   return <Text style={styles.stars}>{'★'.repeat(value) + '☆'.repeat(5 - value)}</Text>;
 }
 
-function CheckinRow({ checkin }: { checkin: Checkin }) {
+function CheckinRow({ checkin, children }: { checkin: Checkin; children?: ReactNode }) {
   return (
     <View style={styles.row}>
       <Text style={styles.rowName}>
@@ -50,6 +50,7 @@ function CheckinRow({ checkin }: { checkin: Checkin }) {
       </Text>
       {checkin.rating ? <Stars value={checkin.rating} /> : null}
       {checkin.comment ? <Text>{checkin.comment}</Text> : null}
+      {children}
     </View>
   );
 }
@@ -122,6 +123,17 @@ export default function PlaceScreen() {
     }
   }
 
+  /** Convida para conversar (ou abre a conversa, se já existir). */
+  async function talkTo(userId: string) {
+    setFormError(null);
+    try {
+      const conversation = await startConversation({ userId, placeId: id });
+      router.push({ pathname: '/conversations/[id]', params: { id: conversation.id } });
+    } catch (err) {
+      setFormError((err as Error).message);
+    }
+  }
+
   const title = data?.place.name ?? name ?? '';
 
   if (!data) {
@@ -170,11 +182,18 @@ export default function PlaceScreen() {
             <Text style={styles.secondaryText}>Sair do local</Text>
           </Pressable>
 
+          {formError && <Text style={styles.error}>{formError}</Text>}
           <Text style={styles.sectionTitle}>Quem está aqui agora</Text>
           {presence.people.length === 0 ? (
             <Text style={styles.muted}>Ninguém mais fez check-in por enquanto.</Text>
           ) : (
-            presence.people.map((p) => <CheckinRow key={p.id} checkin={p} />)
+            presence.people.map((p) => (
+              <CheckinRow key={p.id} checkin={p}>
+                <Pressable style={styles.talkButton} onPress={() => talkTo(p.author.id)}>
+                  <Text style={styles.talkText}>Puxar conversa</Text>
+                </Pressable>
+              </CheckinRow>
+            ))
           )}
         </View>
       ) : (
@@ -243,5 +262,7 @@ const styles = StyleSheet.create({
   secondaryButton: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12, alignItems: 'center' },
   secondaryText: { fontWeight: '600' },
   disabled: { opacity: 0.6 },
+  talkButton: { alignSelf: 'flex-start', marginTop: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#1f6feb' },
+  talkText: { color: '#fff', fontWeight: '600' },
   error: { color: '#b42318' },
 });

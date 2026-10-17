@@ -1,5 +1,5 @@
 import type { AuthIdentity } from '../auth/identity.js';
-import { buildApp } from '../app.js';
+import { buildApp, type AppDeps } from '../app.js';
 
 export const TEST_MONGO_URL = process.env.MONGO_URL_TEST;
 
@@ -19,6 +19,6 @@ export function authHeader(uid: string) {
   return { authorization: `Bearer test:${uid}` };
 }
 
-export function buildTestApp() {
-  return buildApp({ CORS_ORIGIN: '*', LOG_LEVEL: 'silent' }, { verifyToken: fakeVerifyToken });
+export function buildTestApp(deps: Partial<AppDeps> = {}) {
+  return buildApp({ CORS_ORIGIN: '*', LOG_LEVEL: 'silent' }, { verifyToken: fakeVerifyToken, ...deps });
 }

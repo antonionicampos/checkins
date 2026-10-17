@@ -1,11 +1,14 @@
 import type {
   Checkin,
+  Conversation,
+  Message,
   CreateCheckinInput,
   HealthResponse,
   Place,
   PlaceCategory,
   PlaceReviewsResponse,
   PresenceResponse,
+  StartConversationInput,
   UpdateMeInput,
   User,
 } from '@checkins/shared';
@@ -90,4 +93,32 @@ export async function leavePlace() {
     headers: token ? { authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new ApiError(res.status, `A API respondeu ${res.status}`);
+}
+
+export function startConversation(input: StartConversationInput) {
+  return request<Conversation>('/conversations', { method: 'POST', body: JSON.stringify(input) });
+}
+
+export function getConversations() {
+  return request<{ conversations: Conversation[] }>('/conversations');
+}
+
+export function getConversation(conversationId: string) {
+  return request<Conversation>(`/conversations/${conversationId}`);
+}
+
+export function answerConversation(conversationId: string, action: 'accept' | 'decline') {
+  return request<Conversation>(`/conversations/${conversationId}/${action}`, { method: 'POST' });
+}
+
+export function getMessages(conversationId: string, before?: string) {
+  const qs = before ? `?${new URLSearchParams({ before })}` : '';
+  return request<{ messages: Message[] }>(`/conversations/${conversationId}/messages${qs}`);
+}
+
+export function sendMessage(conversationId: string, text: string) {
+  return request<Message>(`/conversations/${conversationId}/messages`, {
+    method: 'POST',
+    body: JSON.stringify({ text }),
+  });
 }

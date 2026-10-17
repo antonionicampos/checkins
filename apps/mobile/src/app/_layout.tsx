@@ -20,6 +20,8 @@ function RootNavigator() {
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="index" options={{ title: 'Lugares perto de você' }} />
         <Stack.Screen name="place/[id]" options={{ title: '' }} />
+        <Stack.Screen name="conversations/index" options={{ title: 'Conversas' }} />
+        <Stack.Screen name="conversations/[id]" options={{ title: '' }} />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name="sign-in" options={{ headerShown: false }} />

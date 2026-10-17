@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { getMe } from '../lib/api';
 import { auth } from '../lib/firebase';
 import { signOutFromGoogle } from '../lib/google';
+import { closeRealtime } from '../lib/realtime';
 
 interface AuthState {
   /** Ainda descobrindo se há alguém logado (ao abrir o app). */
@@ -45,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
+    closeRealtime();
     await signOutFromGoogle();
     await firebaseSignOut(auth);
   }, []);

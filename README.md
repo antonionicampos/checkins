@@ -14,10 +14,11 @@ fotos e cardápios.
 | Login com Firebase (e-mail/senha, esqueci a senha, Google) | Pronto, falta configurar o projeto no Firebase |
 | Perfil do usuário no MongoDB (`GET/PATCH /me`) | Pronto |
 | Lugares perto de você (busca por distância) | Pronto, com lugares de exemplo |
-| Socket.IO com login obrigatório | Base pronta (só entra e sai de salas) |
+| Socket.IO com login obrigatório | Pronto; cada pessoa recebe convites e mensagens na sua sala |
 | Importar lugares do OpenStreetMap | Pronto (`npm run import:osm`); São Paulo é a primeira cidade |
 | Check-in com comentário e nota, quem está no local agora | Pronto (API e tela do lugar no app) |
-| Conversa direta, grupos no local, chat | A fazer |
+| Conversa direta com quem está no local (após aceite) | Pronto (API, lista de conversas e chat no app) |
+| Grupos no local e chat do grupo | A fazer |
 | Fotos e cardápios (salvos no disco de casa) | A fazer |
 | Denúncia/moderação e notificações push | A fazer |
 
@@ -40,17 +41,19 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 - Localizações ficam em GeoJSON com índice `2dsphere`. Check-in (e, depois, criação de grupo) exige estar
   a até 100 m do lugar, conferido no servidor, e a presença dura 3 horas (constantes em `packages/shared`).
 - Só quem está no local vê a lista de quem mais está ali. Quem faz check-in pode escolher não aparecer nela.
+- Conversa direta: quem está no local convida alguém da lista; as mensagens só começam depois que a outra
+  pessoa aceita. A conversa continua depois que as duas saem do lugar. Convite recusado não pode ser refeito.
 
 ## Estrutura
 
 | Pasta | O que é |
 | --- | --- |
 | `apps/mobile` | App React Native com Expo SDK 57 e Expo Router (TypeScript) |
-| `apps/mobile/src/app` | Telas: `sign-in.tsx` (login), `index.tsx` (lugares perto de você) e `place/[id].tsx` (lugar e check-in) |
+| `apps/mobile/src/app` | Telas: `sign-in.tsx` (login), `index.tsx` (lugares perto de você) e `place/[id].tsx` (lugar e check-in) e `conversations/` (convites e chat) |
 | `apps/mobile/src/auth`, `src/lib` | Contexto de login, Firebase, Google e cliente da API |
 | `apps/api` | API Node.js com Fastify, MongoDB (Mongoose) e Socket.IO |
 | `apps/api/src/routes` | Rotas e seus testes |
-| `apps/api/src/models` | `Place`, `Checkin` e `User` |
+| `apps/api/src/models` | `Place`, `Checkin`, `User`, `Conversation` e `Message` |
 | `apps/api/src/auth` | Validação do token do Firebase e `requireAuth` |
 | `apps/api/src/realtime` | Socket.IO |
 | `packages/shared` | Tipos, validações (zod) e constantes usados pelo app e pela API |
@@ -68,8 +71,15 @@ Cloudflare Tunnel (HTTPS público, sem abrir portas)
 | `DELETE /me/presence` | Sim | Sai do local antes das 3 horas |
 | `GET /places/:placeId/presence` | Sim | Se você está no local e, só nesse caso, quem mais está ali agora |
 | `GET /places/:placeId/checkins` | Sim | Últimos comentários e notas do lugar, com a média |
+| `POST /conversations` | Sim | Convida para conversar (`{ userId, placeId }`); as duas pessoas precisam estar no lugar. Repetir devolve a mesma conversa |
+| `GET /conversations` | Sim | Minhas conversas e convites (sem os recusados), com a última mensagem |
+| `GET /conversations/:id` | Sim | Uma conversa |
+| `POST /conversations/:id/accept` e `/decline` | Sim | Responde a um convite recebido |
+| `GET /conversations/:id/messages?before=` | Sim | Mensagens, da mais antiga para a mais nova (50 por vez) |
+| `POST /conversations/:id/messages` | Sim | Manda mensagem (`{ text }`), só depois do aceite |
 
-O Socket.IO exige o token na conexão: `io(url, { auth: { token } })`.
+O Socket.IO exige o token na conexão: `io(url, { auth: { token } })`. Cada pessoa entra na sua sala ao conectar e
+recebe `conversation:updated` (convite novo ou respondido) e `message:new`.
 
 ## Requisitos
 

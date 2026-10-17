@@ -8,12 +8,22 @@ let socket: Socket | null = null;
 /** Uma conexão de Socket.IO para o app todo, aberta no primeiro uso; o token é renovado a cada reconexão. */
 function getSocket(): Socket {
   if (!socket) {
-    socket = io(API_URL, {
+    const s = io(API_URL, {
       transports: ['websocket'],
       auth: (cb) => {
-        void auth.currentUser?.getIdToken().then((token) => cb({ token }));
+        auth.currentUser
+          ?.getIdToken()
+          .then((token) => cb({ token }))
+          .catch(() => cb({}));
+        if (!auth.currentUser) cb({});
       },
     });
+    // Se a API recusar a conexão (token ainda não pronto, API reiniciando), o Socket.IO não tenta de novo
+    // sozinho: sem isso, a pessoa ficaria sem receber mensagens até fechar o app.
+    s.on('connect_error', () => {
+      if (!s.active) setTimeout(() => socket === s && s.connect(), 3000);
+    });
+    socket = s;
   }
   return socket;
 }
@@ -36,4 +46,21 @@ export function useRealtime<T>(event: string, handler: (payload: T) => void) {
       s.off(event, listener);
     };
   }, [event]);
+}
+
+/**
+ * Chama `handler` sempre que a conexão em tempo real (re)abre. Eventos que chegaram enquanto o celular
+ * estava sem conexão se perdem, então a tela usa isto para recarregar o que perdeu.
+ */
+export function useRealtimeReconnect(handler: () => void) {
+  const ref = useRef(handler);
+  ref.current = handler;
+  useEffect(() => {
+    const s = getSocket();
+    const listener = () => ref.current();
+    s.on('connect', listener);
+    return () => {
+      s.off('connect', listener);
+    };
+  }, []);
 }

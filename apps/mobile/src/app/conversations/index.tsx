@@ -2,12 +2,10 @@ import { REALTIME_EVENTS, type Conversation } from '@checkins/shared';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { useAuth } from '../../auth/AuthProvider';
 import { answerConversation, getConversations } from '../../lib/api';
-import { useRealtime } from '../../lib/realtime';
+import { useRealtime, useRealtimeReconnect } from '../../lib/realtime';
 
 export default function ConversationsScreen() {
-  const { profile } = useAuth();
   const [conversations, setConversations] = useState<Conversation[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -29,6 +27,7 @@ export default function ConversationsScreen() {
   );
   useRealtime(REALTIME_EVENTS.conversationUpdated, () => void load());
   useRealtime(REALTIME_EVENTS.messageNew, () => void load());
+  useRealtimeReconnect(() => void load());
 
   async function answer(id: string, action: 'accept' | 'decline') {
     try {
@@ -98,7 +97,7 @@ export default function ConversationsScreen() {
             )}
             {last && (
               <Text numberOfLines={1}>
-                {last.senderId === profile?.id ? 'Você: ' : ''}
+                {last.senderId !== item.other.id ? 'Você: ' : ''}
                 {last.text}
               </Text>
             )}

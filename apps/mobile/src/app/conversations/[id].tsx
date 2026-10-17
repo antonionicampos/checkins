@@ -1,20 +1,20 @@
 import { MESSAGE_MAX_LENGTH, REALTIME_EVENTS, type Conversation, type Message } from '@checkins/shared';
-import { Stack, useLocalSearchParams } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  AppState,
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { useAuth } from '../../auth/AuthProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getConversation, getMessages, sendMessage } from '../../lib/api';
-import { useRealtime } from '../../lib/realtime';
+import { useKeyboardOverlap } from '../../lib/keyboard';
+import { useRealtime, useRealtimeReconnect } from '../../lib/realtime';
 
 /** Junta mensagens novas sem repetir (a mesma pode chegar pela resposta da API e pelo tempo real). */
 function merge(list: Message[], incoming: Message[]): Message[] {
@@ -25,7 +25,9 @@ function merge(list: Message[], incoming: Message[]): Message[] {
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { profile } = useAuth();
+  const insets = useSafeAreaInsets();
+  const rootRef = useRef<View>(null);
+  const keyboard = useKeyboardOverlap(rootRef);
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
@@ -43,9 +45,18 @@ export default function ChatScreen() {
     }
   }, [id]);
 
+  // Recarrega ao abrir a tela, ao voltar para o app e quando o tempo real reconecta:
+  // mensagens que chegaram nesses intervalos não vieram pelo Socket.IO.
+  useFocusEffect(
+    useCallback(() => {
+      void load();
+    }, [load]),
+  );
   useEffect(() => {
-    void load();
+    const sub = AppState.addEventListener('change', (state) => state === 'active' && void load());
+    return () => sub.remove();
   }, [load]);
+  useRealtimeReconnect(() => void load());
 
   useRealtime<Message>(REALTIME_EVENTS.messageNew, (m) => {
     if (m.conversationId === id) setMessages((current) => merge(current, [m]));
@@ -79,11 +90,7 @@ export default function ChatScreen() {
 
   const accepted = conversation.status === 'accepted';
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
-    >
+    <View ref={rootRef} style={[styles.flex, { paddingBottom: keyboard }]}>
       <Stack.Screen options={{ title: conversation.other.displayName }} />
       <FlatList
         style={styles.flex}
@@ -101,7 +108,9 @@ export default function ChatScreen() {
           </Text>
         }
         renderItem={({ item }) => {
-          const mine = item.senderId === profile?.id;
+          // Compara com a outra pessoa da conversa (sempre carregada aqui) em vez do meu perfil,
+          // que pode ainda não ter carregado e fazia todas as mensagens aparecerem como da outra pessoa.
+          const mine = item.senderId !== conversation.other.id;
           return (
             <View style={[styles.bubble, mine ? styles.mine : styles.theirs]}>
               <Text style={mine ? styles.mineText : undefined}>{item.text}</Text>
@@ -111,7 +120,7 @@ export default function ChatScreen() {
       />
       {error && <Text style={[styles.error, styles.padded]}>{error}</Text>}
       {accepted && (
-        <View style={styles.composer}>
+        <View style={[styles.composer, { paddingBottom: keyboard > 0 ? 12 : 12 + insets.bottom }]}>
           <TextInput
             style={styles.input}
             placeholder="Mensagem"
@@ -125,7 +134,7 @@ export default function ChatScreen() {
           </Pressable>
         </View>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 

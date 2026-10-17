@@ -33,6 +33,7 @@ import {
   startConversation,
 } from '../../lib/api';
 import { MenuSection } from '../../components/MenuSection';
+import { PlacePhotosSection } from '../../components/PlacePhotosSection';
 import { expiryLabel } from '../../lib/groups';
 import { getCurrentPosition } from '../../lib/location';
 
@@ -58,9 +59,13 @@ function Stars({ value }: { value: number }) {
 function CheckinRow({ checkin, children }: { checkin: Checkin; children?: ReactNode }) {
   return (
     <View style={styles.row}>
-      <Text style={styles.rowName}>
-        {checkin.author.displayName} <Text style={styles.muted}>· {timeAgo(checkin.createdAt)}</Text>
-      </Text>
+      <Pressable
+        onPress={() => checkin.author.id && router.push({ pathname: '/profile/[id]', params: { id: checkin.author.id } })}
+      >
+        <Text style={styles.rowName}>
+          {checkin.author.displayName} <Text style={styles.muted}>· {timeAgo(checkin.createdAt)}</Text>
+        </Text>
+      </Pressable>
       {checkin.rating ? <Stars value={checkin.rating} /> : null}
       {checkin.comment ? <Text>{checkin.comment}</Text> : null}
       {children}
@@ -286,6 +291,8 @@ export default function PlaceScreen() {
           </Pressable>
         )}
       </View>
+
+      <PlacePhotosSection placeId={id} present={presence.present} />
 
       <MenuSection placeId={id} present={presence.present} />
 

@@ -9,6 +9,8 @@ const userSchema = new Schema(
     email: { type: String, lowercase: true, trim: true },
     displayName: { type: String, required: true, trim: true, maxlength: 40 },
     photoUrl: { type: String },
+    /** Texto curto "sobre mim" do perfil. */
+    bio: { type: String, trim: true, maxlength: 160 },
     providers: { type: [String], default: [] },
   },
   { timestamps: true },
@@ -24,6 +26,7 @@ export function toUserDto(doc: UserDoc): User {
     displayName: doc.displayName,
     email: doc.email ?? undefined,
     photoUrl: doc.photoUrl ?? undefined,
+    bio: doc.bio || undefined,
   };
 }
 

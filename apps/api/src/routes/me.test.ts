@@ -53,6 +53,15 @@ describe.skipIf(!TEST_MONGO_URL)('/me com login', async () => {
     expect(res.json().displayName).toBe('Ana Souza');
   });
 
+  it('muda o "sobre mim" sem mexer no nome e apaga com texto vazio', async () => {
+    const set = await app.inject({ method: 'PATCH', url: '/me', headers: authHeader('ana'), payload: { bio: ' Gosto de bar ' } });
+    expect(set.json()).toMatchObject({ displayName: 'Ana Souza', bio: 'Gosto de bar' });
+    const cleared = await app.inject({ method: 'PATCH', url: '/me', headers: authHeader('ana'), payload: { bio: '' } });
+    expect(cleared.json().bio).toBeUndefined();
+    const long = await app.inject({ method: 'PATCH', url: '/me', headers: authHeader('ana'), payload: { bio: 'x'.repeat(161) } });
+    expect(long.statusCode).toBe(400);
+  });
+
   it('recusa nome curto demais', async () => {
     const res = await app.inject({
       method: 'PATCH',

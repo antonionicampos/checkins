@@ -10,6 +10,7 @@ import { Link, Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useAuth } from '../auth/AuthProvider';
+import { IconButton, NAV_ICON_COLOR } from '../components/IconButton';
 import { PlacesMap, type MapArea } from '../components/PlacesMap';
 import { API_URL, getHealth, getNearbyPlaces } from '../lib/api';
 import { getCurrentPosition, LocationPermissionError } from '../lib/location';
@@ -35,18 +36,14 @@ export default function NearbyPlacesScreen() {
       options={{
         headerLeft: () => (
           <Link href="/conversations" asChild>
-            <Pressable hitSlop={8}>
-              <Text style={styles.headerLink}>Conversas</Text>
-            </Pressable>
+            <IconButton icon="chatbubbles-outline" label="Conversas e grupos" />
           </Link>
         ),
         // O perfil carrega logo depois do login; até lá, o link fica escondido.
         headerRight: () =>
           profile ? (
             <Link href={{ pathname: '/profile/[id]', params: { id: profile.id } }} asChild>
-              <Pressable hitSlop={8}>
-                <Text style={styles.headerLink}>Perfil</Text>
-              </Pressable>
+              <IconButton icon="person-circle-outline" label="Meu perfil" />
             </Link>
           ) : null,
       }}
@@ -129,9 +126,16 @@ export default function NearbyPlacesScreen() {
         />
         <View style={styles.toggle}>
           {(['list', 'map'] as const).map((m) => (
-            <Pressable key={m} style={[styles.toggleItem, mode === m && styles.toggleActive]} onPress={() => setMode(m)}>
-              <Text style={[styles.toggleText, mode === m && styles.toggleTextActive]}>{m === 'list' ? 'Lista' : 'Mapa'}</Text>
-            </Pressable>
+            <IconButton
+              key={m}
+              icon={m === 'list' ? 'list' : 'map-outline'}
+              label={m === 'list' ? 'Ver em lista' : 'Ver no mapa'}
+              size={20}
+              color={mode === m ? '#fff' : NAV_ICON_COLOR}
+              accessibilityState={{ selected: mode === m }}
+              style={[styles.toggleItem, mode === m && styles.toggleActive]}
+              onPress={() => setMode(m)}
+            />
           ))}
         </View>
       </View>
@@ -223,8 +227,6 @@ const styles = StyleSheet.create({
   toggle: { flexDirection: 'row', borderWidth: 1, borderColor: '#1f6feb', borderRadius: 8, overflow: 'hidden' },
   toggleItem: { paddingHorizontal: 12, paddingVertical: 8 },
   toggleActive: { backgroundColor: '#1f6feb' },
-  toggleText: { color: '#1f6feb', fontWeight: '600' },
-  toggleTextActive: { color: '#fff' },
   chips: { gap: 8 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#f2f4f7' },
   chipActive: { backgroundColor: '#1f6feb' },

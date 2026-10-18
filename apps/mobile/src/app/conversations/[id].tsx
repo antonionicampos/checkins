@@ -1,8 +1,9 @@
 import { REALTIME_EVENTS, type Conversation, type Message } from '@checkins/shared';
 import { Link, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, StyleSheet, Text, View } from 'react-native';
 import { ChatView, mergeMessages } from '../../components/ChatView';
+import { IconButton } from '../../components/IconButton';
 import { useReport } from '../../components/ReportSheet';
 import { getConversation, getMessages, sendMessage } from '../../lib/api';
 import { useRealtime, useRealtimeReconnect } from '../../lib/realtime';
@@ -75,9 +76,7 @@ export default function ConversationScreen() {
           headerRight: () =>
             other.id ? (
               <Link href={{ pathname: '/profile/[id]', params: { id: other.id } }} asChild>
-                <Pressable hitSlop={8}>
-                  <Text style={styles.link}>Perfil</Text>
-                </Pressable>
+                <IconButton icon="person-circle-outline" label={`Perfil de ${other.displayName}`} />
               </Link>
             ) : null,
         }}
@@ -105,5 +104,4 @@ export default function ConversationScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   error: { color: '#b42318' },
-  link: { color: '#1f6feb', fontWeight: '600' },
 });

@@ -36,7 +36,8 @@ function RootNavigator() {
 
   const signedIn = firebaseUser !== null;
   return (
-    <Stack screenOptions={{ headerTitleAlign: 'center' }}>
+    // Botão de voltar só com a seta, sem o nome da tela anterior (o iOS mostra o nome por padrão).
+    <Stack screenOptions={{ headerTitleAlign: 'center', headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="index" options={{ title: 'Lugares perto de você' }} />
         <Stack.Screen name="place/[id]" options={{ title: '' }} />

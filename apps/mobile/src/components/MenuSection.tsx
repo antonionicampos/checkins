@@ -6,6 +6,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { deleteMenu, getMenus, mediaUrl, toggleMenuOutdated, uploadMenu } from '../lib/api';
 import { useReport } from './ReportSheet';
+import { colors } from '../theme';
 
 interface Props {
   placeId: string;
@@ -173,15 +174,15 @@ export function MenuSection({ placeId, present }: Props) {
 const styles = StyleSheet.create({
   section: { gap: 10 },
   sectionTitle: { fontSize: 18, fontWeight: '600' },
-  muted: { color: '#666' },
-  warning: { color: '#b54708' },
-  card: { padding: 12, borderRadius: 10, backgroundColor: '#f2f4f7', gap: 6 },
-  photo: { width: '100%', height: 220, borderRadius: 8, backgroundColor: '#e4e7ec' },
-  pdf: { height: 80, borderRadius: 8, backgroundColor: '#e4e7ec', alignItems: 'center', justifyContent: 'center' },
+  muted: { color: colors.textMuted },
+  warning: { color: colors.warning },
+  card: { padding: 12, borderRadius: 10, backgroundColor: colors.surface, gap: 6 },
+  photo: { width: '100%', height: 220, borderRadius: 8, backgroundColor: colors.surfaceStrong },
+  pdf: { height: 80, borderRadius: 8, backgroundColor: colors.surfaceStrong, alignItems: 'center', justifyContent: 'center' },
   pdfText: { fontWeight: '600' },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center' },
-  chip: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
-  link: { color: '#1f6feb', fontWeight: '600' },
-  danger: { color: '#b42318', fontWeight: '600' },
-  error: { color: '#b42318' },
+  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
+  link: { color: colors.primary, fontWeight: '600' },
+  danger: { color: colors.danger, fontWeight: '600' },
+  error: { color: colors.danger },
 });

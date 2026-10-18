@@ -17,6 +17,7 @@ import { useAuth } from '../../auth/AuthProvider';
 import { PhotoGrid } from '../../components/PhotoGrid';
 import { useReport } from '../../components/ReportSheet';
 import { blockUser, getProfile, getUserPhotos, unblockUser, updateMe } from '../../lib/api';
+import { colors } from '../../theme';
 
 function plural(n: number, one: string, many: string) {
   return `${n} ${n === 1 ? one : many}`;
@@ -254,26 +255,26 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   content: { padding: 16, gap: 20 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#e4e7ec' },
+  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.surfaceStrong },
   avatarEmpty: { alignItems: 'center', justifyContent: 'center' },
-  avatarLetter: { fontSize: 30, fontWeight: '700', color: '#475467' },
+  avatarLetter: { fontSize: 30, fontWeight: '700', color: colors.textSecondary },
   flex: { flex: 1 },
   name: { fontSize: 22, fontWeight: '700' },
   bio: { fontSize: 16 },
-  muted: { color: '#666' },
-  stats: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, borderRadius: 10, backgroundColor: '#f2f4f7' },
+  muted: { color: colors.textMuted },
+  stats: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, borderRadius: 10, backgroundColor: colors.surface },
   stat: { fontWeight: '600' },
   section: { gap: 10 },
   sectionTitle: { fontSize: 18, fontWeight: '600' },
   label: { fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12 },
   bioInput: { minHeight: 70 },
   actions: { flexDirection: 'row', gap: 16, alignItems: 'center' },
-  button: { backgroundColor: '#1f6feb', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 20 },
-  buttonText: { color: '#fff', fontWeight: '600' },
-  secondaryButton: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12, alignItems: 'center' },
+  button: { backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 20 },
+  buttonText: { color: colors.onPrimary, fontWeight: '600' },
+  secondaryButton: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, alignItems: 'center' },
   secondaryText: { fontWeight: '600' },
-  link: { color: '#1f6feb', fontWeight: '600' },
-  danger: { color: '#b42318', fontWeight: '600' },
-  error: { color: '#b42318' },
+  link: { color: colors.primary, fontWeight: '600' },
+  danger: { color: colors.danger, fontWeight: '600' },
+  error: { color: colors.danger },
 });

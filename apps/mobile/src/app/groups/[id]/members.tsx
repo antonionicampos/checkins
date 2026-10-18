@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useReport } from '../../../components/ReportSheet';
 import { closeGroup, getGroup, leaveGroup, removeGroupMember } from '../../../lib/api';
+import { colors } from '../../../theme';
 
 export default function GroupMembersScreen() {
   const reporter = useReport();
@@ -121,22 +122,22 @@ export default function GroupMembersScreen() {
 }
 
 const styles = StyleSheet.create({
-  reportLink: { color: '#b42318', fontWeight: '600', textAlign: 'center', marginTop: 8 },
+  reportLink: { color: colors.danger, fontWeight: '600', textAlign: 'center', marginTop: 8 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   list: { padding: 16, gap: 8 },
-  muted: { color: '#666', marginBottom: 8 },
+  muted: { color: colors.textMuted, marginBottom: 8 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 12,
     borderRadius: 10,
-    backgroundColor: '#f2f4f7',
+    backgroundColor: colors.surface,
   },
   name: { fontWeight: '600', flexShrink: 1 },
-  danger: { color: '#b42318', fontWeight: '600' },
+  danger: { color: colors.danger, fontWeight: '600' },
   footer: { marginTop: 16, gap: 8 },
-  dangerButton: { borderWidth: 1, borderColor: '#b42318', borderRadius: 8, padding: 12, alignItems: 'center' },
-  dangerButtonText: { color: '#b42318', fontWeight: '600' },
-  error: { color: '#b42318' },
+  dangerButton: { borderWidth: 1, borderColor: colors.danger, borderRadius: 8, padding: 12, alignItems: 'center' },
+  dangerButtonText: { color: colors.danger, fontWeight: '600' },
+  error: { color: colors.danger },
 });

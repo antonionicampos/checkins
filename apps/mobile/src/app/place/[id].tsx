@@ -38,6 +38,7 @@ import { PlacePhotosSection } from '../../components/PlacePhotosSection';
 import { useReport } from '../../components/ReportSheet';
 import { expiryLabel } from '../../lib/groups';
 import { getCurrentPosition } from '../../lib/location';
+import { colors } from '../../theme';
 
 interface Data {
   place: Place;
@@ -201,13 +202,14 @@ export default function PlaceScreen() {
         <Text style={styles.title}>{place.name}</Text>
         <Text style={styles.muted}>
           {PLACE_CATEGORY_LABELS[place.category]}
-          {place.address ? ` · ${place.address}` : ''}
+          {reviews.averageRating !== undefined && (
+            <>
+              {' • '}
+              ★ {reviews.averageRating.toFixed(1)} ({reviews.ratingCount} {reviews.ratingCount === 1 ? 'nota' : 'notas'})
+            </>
+          )}
         </Text>
-        {reviews.averageRating !== undefined && (
-          <Text style={styles.muted}>
-            ★ {reviews.averageRating.toFixed(1)} ({reviews.ratingCount} {reviews.ratingCount === 1 ? 'nota' : 'notas'})
-          </Text>
-        )}
+        {place.address ? <Text style={styles.muted}>{place.address}</Text> : null}
         <Pressable
           style={styles.recommendButton}
           onPress={() =>
@@ -282,7 +284,7 @@ export default function PlaceScreen() {
           </View>
           {formError && <Text style={styles.error}>{formError}</Text>}
           <Pressable style={[styles.button, busy && styles.disabled]} onPress={doCheckin} disabled={busy}>
-            {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Fazer check-in</Text>}
+            {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.buttonText}>Fazer check-in</Text>}
           </Pressable>
         </View>
       )}
@@ -344,27 +346,27 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   content: { padding: 16, gap: 24 },
   title: { fontSize: 24, fontWeight: '700' },
-  muted: { color: '#666' },
+  muted: { color: colors.textMuted },
   section: { gap: 10 },
   sectionTitle: { fontSize: 18, fontWeight: '600' },
-  here: { fontSize: 18, fontWeight: '600', color: '#067647' },
-  row: { padding: 12, borderRadius: 10, backgroundColor: '#f2f4f7', gap: 4 },
+  here: { fontSize: 18, fontWeight: '600', color: colors.presence },
+  row: { padding: 12, borderRadius: 10, backgroundColor: colors.surface, gap: 4 },
   rowName: { fontWeight: '600' },
-  stars: { color: '#dc6803' },
-  input: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12, minHeight: 60 },
+  stars: { color: colors.star },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, minHeight: 60 },
   ratingRow: { flexDirection: 'row', gap: 8 },
-  ratingStar: { fontSize: 28, color: '#dc6803' },
+  ratingStar: { fontSize: 28, color: colors.star },
   switchRow: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },
-  button: { backgroundColor: '#1f6feb', borderRadius: 8, padding: 14, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  secondaryButton: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12, alignItems: 'center' },
+  button: { backgroundColor: colors.primary, borderRadius: 8, padding: 14, alignItems: 'center' },
+  buttonText: { color: colors.onPrimary, fontWeight: '600', fontSize: 16 },
+  secondaryButton: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, alignItems: 'center' },
   secondaryText: { fontWeight: '600' },
   disabled: { opacity: 0.6 },
-  link: { color: '#1f6feb', fontWeight: '600', marginTop: 2 },
-  recommendButton: { alignSelf: 'flex-start', marginTop: 8, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1, borderColor: '#d0d5dd' },
+  link: { color: colors.primary, fontWeight: '600', marginTop: 2 },
+  recommendButton: { alignSelf: 'flex-start', marginTop: 8, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 16, borderWidth: 1, borderColor: colors.border },
   reportLink: { alignSelf: 'flex-end' },
-  talkButton: { alignSelf: 'flex-start', marginTop: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: '#1f6feb' },
-  talkText: { color: '#fff', fontWeight: '600' },
-  error: { color: '#b42318' },
+  talkButton: { alignSelf: 'flex-start', marginTop: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, backgroundColor: colors.primary },
+  talkText: { color: colors.onPrimary, fontWeight: '600' },
+  error: { color: colors.danger },
 });

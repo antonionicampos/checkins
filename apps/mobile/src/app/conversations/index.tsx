@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Tex
 import { answerConversation, getConversations, getMyGroups } from '../../lib/api';
 import { expiryLabel } from '../../lib/groups';
 import { useRealtime, useRealtimeReconnect } from '../../lib/realtime';
+import { colors } from '../../theme';
 
 export default function ConversationsScreen() {
   const [conversations, setConversations] = useState<Conversation[] | null>(null);
@@ -141,12 +142,12 @@ const styles = StyleSheet.create({
   list: { padding: 16, gap: 12 },
   headerBlock: { gap: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '600' },
-  card: { padding: 14, borderRadius: 10, backgroundColor: '#f2f4f7', gap: 4 },
+  card: { padding: 14, borderRadius: 10, backgroundColor: colors.surface, gap: 4 },
   name: { fontSize: 16, fontWeight: '600' },
-  muted: { color: '#666' },
+  muted: { color: colors.textMuted },
   actions: { flexDirection: 'row', gap: 8, marginTop: 6 },
-  accept: { backgroundColor: '#1f6feb', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
-  acceptText: { color: '#fff', fontWeight: '600' },
-  decline: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
-  error: { color: '#b42318', marginBottom: 8 },
+  accept: { backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
+  acceptText: { color: colors.onPrimary, fontWeight: '600' },
+  decline: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 16 },
+  error: { color: colors.danger, marginBottom: 8 },
 });

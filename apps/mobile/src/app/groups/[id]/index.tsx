@@ -8,6 +8,7 @@ import { useReport } from '../../../components/ReportSheet';
 import { ApiError, getBlocks, getGroup, getGroupMessages, joinGroup, sendGroupMessage } from '../../../lib/api';
 import { expiryLabel } from '../../../lib/groups';
 import { useRealtime, useRealtimeReconnect } from '../../../lib/realtime';
+import { colors } from '../../../theme';
 
 export default function GroupScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -142,9 +143,9 @@ export default function GroupScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 },
-  header: { padding: 12, gap: 6, borderBottomWidth: 1, borderColor: '#eaecf0' },
-  muted: { color: '#666' },
-  button: { backgroundColor: '#1f6feb', borderRadius: 8, padding: 12, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600' },
-  error: { color: '#b42318' },
+  header: { padding: 12, gap: 6, borderBottomWidth: 1, borderColor: colors.divider },
+  muted: { color: colors.textMuted },
+  button: { backgroundColor: colors.primary, borderRadius: 8, padding: 12, alignItems: 'center' },
+  buttonText: { color: colors.onPrimary, fontWeight: '600' },
+  error: { color: colors.danger },
 });

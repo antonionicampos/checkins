@@ -3,6 +3,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { getContacts, recommendPlace } from '../../lib/api';
+import { colors } from '../../theme';
 
 export default function RecommendScreen() {
   const { placeId, placeName, lat, lng } = useLocalSearchParams<{
@@ -92,7 +93,7 @@ export default function RecommendScreen() {
         disabled={sending || selected.size === 0}
       >
         {sending ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={colors.onPrimary} />
         ) : (
           <Text style={styles.buttonText}>
             {selected.size > 1 ? `Enviar para ${selected.size} pessoas` : 'Enviar'}
@@ -112,17 +113,17 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 12 },
   title: { fontSize: 22, fontWeight: '700' },
   sectionTitle: { fontSize: 18, fontWeight: '600', marginTop: 4 },
-  muted: { color: '#666' },
-  input: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12, minHeight: 60 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 10, backgroundColor: '#f2f4f7' },
-  rowOn: { backgroundColor: '#d1e9ff' },
+  muted: { color: colors.textMuted },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, minHeight: 60 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 10, backgroundColor: colors.surface },
+  rowOn: { backgroundColor: colors.primarySoft },
   check: { fontSize: 20 },
   name: { fontWeight: '600' },
-  button: { backgroundColor: '#1f6feb', borderRadius: 8, padding: 14, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  button: { backgroundColor: colors.primary, borderRadius: 8, padding: 14, alignItems: 'center' },
+  buttonText: { color: colors.onPrimary, fontWeight: '600', fontSize: 16 },
   disabled: { opacity: 0.5 },
-  divider: { height: 1, backgroundColor: '#eaecf0', marginVertical: 4 },
-  secondaryButton: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12, alignItems: 'center' },
+  divider: { height: 1, backgroundColor: colors.divider, marginVertical: 4 },
+  secondaryButton: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, alignItems: 'center' },
   secondaryText: { fontWeight: '600' },
-  error: { color: '#b42318' },
+  error: { color: colors.danger },
 });

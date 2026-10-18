@@ -6,6 +6,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { getPlacePhotos, uploadPhoto } from '../lib/api';
 import { PhotoGrid } from './PhotoGrid';
+import { colors } from '../theme';
 
 interface Props {
   placeId: string;
@@ -122,14 +123,14 @@ export function PlacePhotosSection({ placeId, present }: Props) {
 const styles = StyleSheet.create({
   section: { gap: 10 },
   sectionTitle: { fontSize: 18, fontWeight: '600' },
-  muted: { color: '#666' },
-  card: { padding: 12, borderRadius: 10, backgroundColor: '#f2f4f7', gap: 8 },
-  preview: { width: '100%', height: 220, borderRadius: 8, backgroundColor: '#e4e7ec' },
-  input: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 10, backgroundColor: '#fff' },
+  muted: { color: colors.textMuted },
+  card: { padding: 12, borderRadius: 10, backgroundColor: colors.surface, gap: 8 },
+  preview: { width: '100%', height: 220, borderRadius: 8, backgroundColor: colors.surfaceStrong },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, backgroundColor: colors.surfaceRaised },
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center' },
-  chip: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
-  button: { backgroundColor: '#1f6feb', borderRadius: 8, paddingVertical: 8, paddingHorizontal: 18 },
-  buttonText: { color: '#fff', fontWeight: '600' },
-  link: { color: '#1f6feb', fontWeight: '600' },
-  error: { color: '#b42318' },
+  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
+  button: { backgroundColor: colors.primary, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 18 },
+  buttonText: { color: colors.onPrimary, fontWeight: '600' },
+  link: { color: colors.primary, fontWeight: '600' },
+  error: { color: colors.danger },
 });

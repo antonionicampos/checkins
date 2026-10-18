@@ -5,6 +5,7 @@ import { Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { deletePhoto, mediaUrl } from '../lib/api';
 import { useReport } from './ReportSheet';
+import { colors } from '../theme';
 
 interface Props {
   photos: Photo[];
@@ -104,14 +105,14 @@ export function PhotoGrid({ photos, onDeleted, show }: Props) {
 const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
   cell: { width: '32.5%', aspectRatio: 1 },
-  thumb: { flex: 1, borderRadius: 6, backgroundColor: '#e4e7ec' },
-  viewer: { flex: 1, backgroundColor: '#000' },
+  thumb: { flex: 1, borderRadius: 6, backgroundColor: colors.surfaceStrong },
+  viewer: { flex: 1, backgroundColor: colors.black },
   viewerContent: { paddingHorizontal: 16, gap: 10 },
   close: { alignSelf: 'flex-end' },
-  closeText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  closeText: { color: colors.onPrimary, fontWeight: '600', fontSize: 16 },
   full: { width: '100%', aspectRatio: 3 / 4 },
-  caption: { color: '#fff', fontSize: 16 },
-  link: { color: '#6ea8fe', fontWeight: '600', fontSize: 16 },
-  muted: { color: '#aaa' },
-  danger: { color: '#ff6b5e', fontWeight: '600', marginTop: 8 },
+  caption: { color: colors.onPrimary, fontSize: 16 },
+  link: { color: colors.primaryOnDark, fontWeight: '600', fontSize: 16 },
+  muted: { color: colors.textSubtle },
+  danger: { color: colors.dangerOnDark, fontWeight: '600', marginTop: 8 },
 });

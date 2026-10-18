@@ -1,10 +1,11 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { forwardRef, type ComponentProps } from 'react';
 import { Pressable, type View } from 'react-native';
+import { colors } from '../theme';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
-export const NAV_ICON_COLOR = '#1f6feb';
+export const NAV_ICON_COLOR = colors.primary;
 
 type Props = Omit<ComponentProps<typeof Pressable>, 'children'> & {
   icon: IconName;

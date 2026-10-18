@@ -202,13 +202,14 @@ export default function PlaceScreen() {
         <Text style={styles.title}>{place.name}</Text>
         <Text style={styles.muted}>
           {PLACE_CATEGORY_LABELS[place.category]}
-          {place.address ? ` · ${place.address}` : ''}
+          {reviews.averageRating !== undefined && (
+            <>
+              {' • '}
+              ★ {reviews.averageRating.toFixed(1)} ({reviews.ratingCount} {reviews.ratingCount === 1 ? 'nota' : 'notas'})
+            </>
+          )}
         </Text>
-        {reviews.averageRating !== undefined && (
-          <Text style={styles.muted}>
-            ★ {reviews.averageRating.toFixed(1)} ({reviews.ratingCount} {reviews.ratingCount === 1 ? 'nota' : 'notas'})
-          </Text>
-        )}
+        {place.address ? <Text style={styles.muted}>{place.address}</Text> : null}
         <Pressable
           style={styles.recommendButton}
           onPress={() =>

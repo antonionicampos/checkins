@@ -12,6 +12,8 @@ export const colors = {
   /** Link sobre fundo escuro (visualizador de fotos). */
   primaryOnDark: '#FB9F6B',
 
+  /** Cor secundária: marcadores dos lugares no mapa. */
+  secondary: '#0B7A75',
   /** Presença no local ("Você está aqui") e mensagens de sucesso. */
   presence: '#0B7A75',
   /** Estrelas das notas. */

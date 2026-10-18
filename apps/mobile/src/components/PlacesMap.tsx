@@ -54,6 +54,8 @@ export function PlacesMap({
             key={p.id}
             coordinate={{ latitude: p.location.lat, longitude: p.location.lng }}
             title={p.name}
+            // No Android o Google Maps só aceita o tom (hue) da cor, então o verde fica um pouco mais vivo.
+            pinColor={colors.secondary}
             description={`${PLACE_CATEGORY_LABELS[p.category]} · toque para abrir`}
             onCalloutPress={() => router.push({ pathname: '/place/[id]', params: { id: p.id, name: p.name } })}
           />

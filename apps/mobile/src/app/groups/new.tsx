@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createGroup } from '../../lib/api';
 import { getCurrentPosition } from '../../lib/location';
+import { colors } from '../../theme';
 
 /** Opções de duração: as temporárias do shared e "sem prazo" (undefined). */
 const DURATIONS: (number | undefined)[] = [...GROUP_DURATION_HOURS, undefined];
@@ -71,7 +72,7 @@ export default function NewGroupScreen() {
         onPress={submit}
         disabled={busy || name.trim().length < 2}
       >
-        {busy ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Criar grupo</Text>}
+        {busy ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.buttonText}>Criar grupo</Text>}
       </Pressable>
     </ScrollView>
   );
@@ -79,16 +80,16 @@ export default function NewGroupScreen() {
 
 const styles = StyleSheet.create({
   content: { padding: 16, gap: 12 },
-  muted: { color: '#666' },
+  muted: { color: colors.textMuted },
   label: { fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12 },
   multiline: { minHeight: 70 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
-  chipSelected: { backgroundColor: '#1f6feb', borderColor: '#1f6feb' },
-  chipTextSelected: { color: '#fff', fontWeight: '600' },
-  button: { backgroundColor: '#1f6feb', borderRadius: 8, padding: 14, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 16, paddingVertical: 6, paddingHorizontal: 14 },
+  chipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipTextSelected: { color: colors.onPrimary, fontWeight: '600' },
+  button: { backgroundColor: colors.primary, borderRadius: 8, padding: 14, alignItems: 'center' },
+  buttonText: { color: colors.onPrimary, fontWeight: '600', fontSize: 16 },
   disabled: { opacity: 0.6 },
-  error: { color: '#b42318' },
+  error: { color: colors.danger },
 });

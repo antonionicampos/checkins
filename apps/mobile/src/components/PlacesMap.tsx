@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, type Region } from 'react-native-maps';
+import { colors } from '../theme';
 
 /** Área que o mapa mostra, como centro e raio de busca (o raio da API vai de 50 a 5000 m). */
 export interface MapArea {
@@ -83,21 +84,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#1f6feb',
+    backgroundColor: colors.primary,
     elevation: 3,
-    shadowColor: '#000',
+    shadowColor: colors.black,
     shadowOpacity: 0.2,
     shadowRadius: 4,
     shadowOffset: { width: 0, height: 2 },
   },
-  searchAreaText: { color: '#fff', fontWeight: '600' },
+  searchAreaText: { color: colors.onPrimary, fontWeight: '600' },
   attribution: {
     position: 'absolute',
     bottom: 4,
     left: 8,
     fontSize: 11,
-    color: '#444',
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    color: colors.textSecondary,
+    backgroundColor: colors.mapLabelBackground,
     paddingHorizontal: 4,
   },
 });

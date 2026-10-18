@@ -4,6 +4,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOverlap } from '../lib/keyboard';
+import { colors } from '../theme';
 
 export interface ChatItem {
   id: string;
@@ -121,34 +122,34 @@ export function ChatView({ messages, emptyText, onSend, error, header, onLongPre
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   list: { padding: 16, gap: 6, flexGrow: 1 },
-  muted: { color: '#666', textAlign: 'center' },
+  muted: { color: colors.textMuted, textAlign: 'center' },
   // A lista é invertida (mais nova embaixo); o aviso de lista vazia precisa ser desvirado.
   flipped: { transform: [{ scaleY: -1 }] },
   bubbleWrap: { maxWidth: '80%', gap: 2 },
   left: { alignSelf: 'flex-start' },
   right: { alignSelf: 'flex-end' },
-  sender: { fontSize: 12, color: '#666', marginLeft: 4 },
+  sender: { fontSize: 12, color: colors.textMuted, marginLeft: 4 },
   bubble: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 14 },
-  mine: { backgroundColor: '#1f6feb' },
-  theirs: { backgroundColor: '#f2f4f7' },
-  mineText: { color: '#fff' },
-  placeCard: { marginTop: 8, padding: 10, borderRadius: 10, backgroundColor: '#fff', gap: 2, minWidth: 180 },
-  placeLabel: { fontSize: 12, color: '#666' },
-  placeName: { fontWeight: '700', color: '#101828' },
-  placeLink: { color: '#1f6feb', fontWeight: '600' },
-  composer: { flexDirection: 'row', gap: 8, padding: 12, borderTopWidth: 1, borderColor: '#eaecf0' },
+  mine: { backgroundColor: colors.primary },
+  theirs: { backgroundColor: colors.surface },
+  mineText: { color: colors.onPrimary },
+  placeCard: { marginTop: 8, padding: 10, borderRadius: 10, backgroundColor: colors.surfaceRaised, gap: 2, minWidth: 180 },
+  placeLabel: { fontSize: 12, color: colors.textMuted },
+  placeName: { fontWeight: '700', color: colors.text },
+  placeLink: { color: colors.primary, fontWeight: '600' },
+  composer: { flexDirection: 'row', gap: 8, padding: 12, borderTopWidth: 1, borderColor: colors.divider },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#d0d5dd',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     maxHeight: 120,
   },
-  send: { backgroundColor: '#1f6feb', borderRadius: 8, paddingHorizontal: 16, justifyContent: 'center' },
-  sendText: { color: '#fff', fontWeight: '600' },
+  send: { backgroundColor: colors.primary, borderRadius: 8, paddingHorizontal: 16, justifyContent: 'center' },
+  sendText: { color: colors.onPrimary, fontWeight: '600' },
   disabled: { opacity: 0.6 },
-  error: { color: '#b42318' },
+  error: { color: colors.danger },
   padded: { paddingHorizontal: 16 },
 });

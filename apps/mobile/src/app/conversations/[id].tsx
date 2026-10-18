@@ -7,6 +7,7 @@ import { IconButton } from '../../components/IconButton';
 import { useReport } from '../../components/ReportSheet';
 import { getConversation, getMessages, sendMessage } from '../../lib/api';
 import { useRealtime, useRealtimeReconnect } from '../../lib/realtime';
+import { colors } from '../../theme';
 
 export default function ConversationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -103,5 +104,5 @@ export default function ConversationScreen() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  error: { color: '#b42318' },
+  error: { color: colors.danger },
 });

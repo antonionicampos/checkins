@@ -46,7 +46,8 @@ const config: ExpoConfig = {
     ],
     // Android usa o Google Maps no build de desenvolvimento; a chave é do Google Cloud (Maps SDK for Android).
     ['react-native-maps', { androidGoogleMapsApiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY || undefined }],
-    ['expo-notifications', { color: '#1f6feb' }],
+    // Cor do ícone da notificação no Android: a `primary` de src/theme.ts.
+    ['expo-notifications', { color: '#C2410C' }],
     [
       '@react-native-google-signin/google-signin',
       // "Reversed client ID" do cliente iOS no Google Cloud; só é usado no build para iPhone.

@@ -3,6 +3,7 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { getBlocks, unblockUser } from '../lib/api';
+import { colors } from '../theme';
 
 /** Pessoas que eu bloqueei, com o botão de desbloquear (o perfil delas some de quase todo lugar). */
 export default function BlockedScreen() {
@@ -61,16 +62,16 @@ export default function BlockedScreen() {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   list: { padding: 16, gap: 8 },
-  muted: { color: '#666', textAlign: 'center' },
+  muted: { color: colors.textMuted, textAlign: 'center' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 12,
     borderRadius: 10,
-    backgroundColor: '#f2f4f7',
+    backgroundColor: colors.surface,
   },
   name: { fontWeight: '600' },
-  link: { color: '#1f6feb', fontWeight: '600' },
-  error: { color: '#b42318' },
+  link: { color: colors.primary, fontWeight: '600' },
+  error: { color: colors.danger },
 });

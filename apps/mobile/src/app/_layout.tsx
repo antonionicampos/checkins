@@ -5,6 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { useEffect } from 'react';
 import { AuthProvider, useAuth } from '../auth/AuthProvider';
 import { setCurrentPath, urlFromResponse } from '../lib/push';
+import { colors } from '../theme';
 
 /** Ao tocar numa notificação (com o app aberto ou fechado), abre a conversa ou o grupo dela. */
 function useNotificationNavigation(ready: boolean) {
@@ -28,8 +29,8 @@ function RootNavigator() {
 
   if (initializing) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }
@@ -37,7 +38,17 @@ function RootNavigator() {
   const signedIn = firebaseUser !== null;
   return (
     // Botão de voltar só com a seta, sem o nome da tela anterior (o iOS mostra o nome por padrão).
-    <Stack screenOptions={{ headerTitleAlign: 'center', headerBackButtonDisplayMode: 'minimal' }}>
+    <Stack
+      screenOptions={{
+        headerTitleAlign: 'center',
+        headerBackButtonDisplayMode: 'minimal',
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.primary,
+        headerTitleStyle: { color: colors.text },
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: colors.background },
+      }}
+    >
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="index" options={{ title: 'Lugares perto de você' }} />
         <Stack.Screen name="place/[id]" options={{ title: '' }} />

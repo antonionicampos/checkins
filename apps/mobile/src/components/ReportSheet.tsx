@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { report } from '../lib/api';
+import { colors } from '../theme';
 
 interface Target {
   type: ReportTargetType;
@@ -75,7 +76,7 @@ export function useReport() {
             <Text style={styles.link}>Cancelar</Text>
           </Pressable>
           <Pressable style={[styles.button, (!reason || sending) && styles.disabled]} onPress={send} disabled={!reason || sending}>
-            {sending ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Enviar denúncia</Text>}
+            {sending ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={styles.buttonText}>Enviar denúncia</Text>}
           </Pressable>
         </View>
       </View>
@@ -86,17 +87,17 @@ export function useReport() {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)' },
-  sheet: { backgroundColor: '#fff', padding: 16, gap: 8, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
+  backdrop: { flex: 1, backgroundColor: colors.backdrop },
+  sheet: { backgroundColor: colors.background, padding: 16, gap: 8, borderTopLeftRadius: 16, borderTopRightRadius: 16 },
   title: { fontSize: 18, fontWeight: '700', marginBottom: 4 },
-  option: { padding: 12, borderRadius: 10, backgroundColor: '#f2f4f7' },
-  optionOn: { backgroundColor: '#b42318' },
-  optionOnText: { color: '#fff', fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 10, minHeight: 50 },
+  option: { padding: 12, borderRadius: 10, backgroundColor: colors.surface },
+  optionOn: { backgroundColor: colors.danger },
+  optionOnText: { color: colors.onPrimary, fontWeight: '600' },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 10, minHeight: 50 },
   actions: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 16, marginTop: 4 },
-  button: { backgroundColor: '#b42318', borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16 },
-  buttonText: { color: '#fff', fontWeight: '600' },
+  button: { backgroundColor: colors.danger, borderRadius: 8, paddingVertical: 10, paddingHorizontal: 16 },
+  buttonText: { color: colors.onPrimary, fontWeight: '600' },
   disabled: { opacity: 0.5 },
-  link: { color: '#1f6feb', fontWeight: '600' },
-  error: { color: '#b42318' },
+  link: { color: colors.primary, fontWeight: '600' },
+  error: { color: colors.danger },
 });

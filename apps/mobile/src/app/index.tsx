@@ -14,6 +14,7 @@ import { IconButton, NAV_ICON_COLOR } from '../components/IconButton';
 import { PlacesMap, type MapArea } from '../components/PlacesMap';
 import { API_URL, getHealth, getNearbyPlaces } from '../lib/api';
 import { getCurrentPosition, LocationPermissionError } from '../lib/location';
+import { colors } from '../theme';
 
 type Mode = 'list' | 'map';
 
@@ -131,7 +132,7 @@ export default function NearbyPlacesScreen() {
               icon={m === 'list' ? 'list' : 'map-outline'}
               label={m === 'list' ? 'Ver em lista' : 'Ver no mapa'}
               size={20}
-              color={mode === m ? '#fff' : NAV_ICON_COLOR}
+              color={mode === m ? colors.onPrimary : NAV_ICON_COLOR}
               accessibilityState={{ selected: mode === m }}
               style={[styles.toggleItem, mode === m && styles.toggleActive]}
               onPress={() => setMode(m)}
@@ -213,36 +214,36 @@ export default function NearbyPlacesScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
-  filters: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, gap: 8, backgroundColor: '#fff' },
+  filters: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, gap: 8, backgroundColor: colors.background },
   searchRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   search: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#d0d5dd',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     fontSize: 15,
   },
-  toggle: { flexDirection: 'row', borderWidth: 1, borderColor: '#1f6feb', borderRadius: 8, overflow: 'hidden' },
+  toggle: { flexDirection: 'row', borderWidth: 1, borderColor: colors.primary, borderRadius: 8, overflow: 'hidden' },
   toggleItem: { paddingHorizontal: 12, paddingVertical: 8 },
-  toggleActive: { backgroundColor: '#1f6feb' },
+  toggleActive: { backgroundColor: colors.primary },
   chips: { gap: 8 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: '#f2f4f7' },
-  chipActive: { backgroundColor: '#1f6feb' },
-  chipText: { color: '#344054' },
-  chipTextActive: { color: '#fff', fontWeight: '600' },
-  areaNote: { color: '#444', fontSize: 13 },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: colors.surface },
+  chipActive: { backgroundColor: colors.primary },
+  chipText: { color: colors.textSecondary },
+  chipTextActive: { color: colors.onPrimary, fontWeight: '600' },
+  areaNote: { color: colors.textSecondary, fontSize: 13 },
   list: { padding: 16, gap: 12 },
-  message: { textAlign: 'center', color: '#444' },
+  message: { textAlign: 'center', color: colors.textSecondary },
   greeting: { fontSize: 18, fontWeight: '600', marginBottom: 8 },
-  headerLink: { color: '#1f6feb', fontWeight: '600' },
-  warning: { color: '#9a5b00' },
-  card: { padding: 16, borderRadius: 12, backgroundColor: '#f2f4f7' },
+  headerLink: { color: colors.primary, fontWeight: '600' },
+  warning: { color: colors.warning },
+  card: { padding: 16, borderRadius: 12, backgroundColor: colors.surface },
   name: { fontSize: 16, fontWeight: '600' },
-  meta: { marginTop: 4, color: '#666' },
-  attribution: { textAlign: 'center', color: '#888', fontSize: 12, marginTop: 8 },
+  meta: { marginTop: 4, color: colors.textMuted },
+  attribution: { textAlign: 'center', color: colors.textSubtle, fontSize: 12, marginTop: 8 },
   mapLoading: { position: 'absolute', top: 56, alignSelf: 'center' },
-  button: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, backgroundColor: '#1f6feb' },
-  buttonText: { color: '#fff', fontWeight: '600' },
+  button: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 8, backgroundColor: colors.primary },
+  buttonText: { color: colors.onPrimary, fontWeight: '600' },
 });

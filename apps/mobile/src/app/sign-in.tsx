@@ -15,6 +15,7 @@ import { authErrorMessage } from '../auth/errors';
 import { updateMe } from '../lib/api';
 import { auth, isFirebaseConfigured } from '../lib/firebase';
 import { isGoogleSignInAvailable, signInWithGoogle } from '../lib/google';
+import { colors } from '../theme';
 
 type Mode = 'entrar' | 'criar';
 
@@ -111,7 +112,7 @@ export default function SignInScreen() {
 
         <Pressable style={[styles.button, busy && styles.disabled]} onPress={submit} disabled={busy}>
           {busy ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.onPrimary} />
           ) : (
             <Text style={styles.buttonText}>{mode === 'entrar' ? 'Entrar' : 'Criar conta'}</Text>
           )}
@@ -139,17 +140,17 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, justifyContent: 'center', backgroundColor: '#fff' },
+  screen: { flex: 1, justifyContent: 'center', backgroundColor: colors.background },
   form: { padding: 24, gap: 12 },
   title: { fontSize: 32, fontWeight: '700', textAlign: 'center' },
-  subtitle: { textAlign: 'center', color: '#555', marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 12, fontSize: 16 },
-  button: { backgroundColor: '#1f6feb', borderRadius: 8, padding: 14, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  googleButton: { borderWidth: 1, borderColor: '#d0d5dd', borderRadius: 8, padding: 14, alignItems: 'center' },
+  subtitle: { textAlign: 'center', color: colors.textSecondary, marginBottom: 12 },
+  input: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, fontSize: 16 },
+  button: { backgroundColor: colors.primary, borderRadius: 8, padding: 14, alignItems: 'center' },
+  buttonText: { color: colors.onPrimary, fontWeight: '600', fontSize: 16 },
+  googleButton: { borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 14, alignItems: 'center' },
   googleText: { fontWeight: '600', fontSize: 16 },
   disabled: { opacity: 0.6 },
-  link: { color: '#1f6feb', textAlign: 'center', padding: 4 },
-  error: { color: '#b42318', textAlign: 'center' },
-  info: { color: '#067647', textAlign: 'center' },
+  link: { color: colors.primary, textAlign: 'center', padding: 4 },
+  error: { color: colors.danger, textAlign: 'center' },
+  info: { color: colors.presence, textAlign: 'center' },
 });

@@ -10,4 +10,15 @@ describe('GET /health', async () => {
     expect(res.statusCode).toBe(503);
     expect(res.json()).toMatchObject({ status: 'degraded', services: { mongo: 'down' } });
   });
+
+  it('usa o IP do X-Forwarded-For quando a requisição vem da própria máquina (Cloudflare Tunnel)', async () => {
+    const proxied = await buildTestApp();
+    let ip: string | undefined;
+    proxied.addHook('onRequest', async (req) => {
+      ip = req.ip;
+    });
+    await proxied.inject({ method: 'GET', url: '/health', headers: { 'x-forwarded-for': '203.0.113.7' } });
+    await proxied.close();
+    expect(ip).toBe('203.0.113.7');
+  });
 });

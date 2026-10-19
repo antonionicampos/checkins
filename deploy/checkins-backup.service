@@ -1,0 +1,18 @@
+# Backup do MongoDB e da pasta de mídia (rodado pelo checkins-backup.timer).
+# Rodar na hora: sudo systemctl start checkins-backup && journalctl -u checkins-backup -n 20
+
+[Unit]
+Description=Backup do Check-ins (MongoDB + fotos e cardápios)
+Wants=network-online.target
+After=network-online.target mongod.service
+
+[Service]
+Type=oneshot
+User=checkins
+Group=checkins
+# Lê MONGO_URL, MEDIA_DIR e, se houver, BACKUP_DIR e BACKUP_KEEP_DAYS do .env de produção.
+EnvironmentFile=/opt/checkins/.env
+ExecStart=/opt/checkins/deploy/backup.sh
+StateDirectory=checkins
+Nice=10
+IOSchedulingClass=idle

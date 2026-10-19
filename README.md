@@ -223,17 +223,10 @@ bundle do app em cada PR.
 
 ## Produção (servidor em casa)
 
-```bash
-npm ci
-npm run build -w @checkins/shared && npm run build -w @checkins/api
-npm start -w @checkins/api        # lê o .env da raiz
-```
-
-Em produção, `MONGO_URL` aponta para o servidor MongoDB da rede local. Para a API reiniciar sozinha
-e subir junto com a máquina, use um gerenciador de processos, por exemplo
-`npx pm2 start apps/api/dist/server.js --name checkins-api --node-args="--env-file=.env"` (na raiz)
-seguido de `pm2 save`. Para publicar a API na internet, instale o `cloudflared` como serviço e aponte
-o túnel para `http://localhost:3000`. O MongoDB nunca fica exposto.
+A API de produção roda numa Debian da rede de casa, com o MongoDB na mesma máquina, como serviço do systemd,
+e chega à internet pelo Cloudflare Tunnel (sem abrir portas). O passo a passo, com todos os comandos, está em
+[`deploy/README.md`](deploy/README.md). Depois de cada merge na `main`, atualize com
+`sudo /opt/checkins/deploy/update.sh`.
 
 ## Trabalhando com o Claude Code
 

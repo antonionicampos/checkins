@@ -40,7 +40,12 @@ export async function buildApp(
   config: Pick<Config, 'CORS_ORIGIN' | 'LOG_LEVEL' | 'MEDIA_DIR'>,
   deps: AppDeps,
 ): Promise<FastifyInstance> {
-  const app = Fastify({ logger: { level: config.LOG_LEVEL } });
+  const app = Fastify({
+    logger: { level: config.LOG_LEVEL },
+    // Em produção o Cloudflare Tunnel (cloudflared) entrega as requisições pela própria máquina: confia no
+    // X-Forwarded-For que vem dele para os logs mostrarem o IP de quem acessou, e não 127.0.0.1.
+    trustProxy: 'loopback',
+  });
   registerAuth(app, deps.verifyToken);
   app.decorate('notify', deps.notify ?? noopNotify);
   app.decorate('pushTo', createPushToUsers(deps.push ?? noopPushSender));

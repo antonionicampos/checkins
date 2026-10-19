@@ -1,0 +1,41 @@
+# API do Check-ins como serviço do systemd (Debian).
+# Instalação: sudo cp deploy/checkins-api.service /etc/systemd/system/ && sudo systemctl enable --now checkins-api
+# Supõe o repositório em /opt/checkins, do usuário de sistema "checkins", com o .env de produção na raiz.
+
+[Unit]
+Description=API do Check-ins (Fastify + Socket.IO)
+# Espera a rede subir; se o MongoDB rodar nesta máquina, sobe depois dele.
+Wants=network-online.target
+After=network-online.target mongod.service
+
+[Service]
+Type=simple
+User=checkins
+Group=checkins
+WorkingDirectory=/opt/checkins/apps/api
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node --env-file=/opt/checkins/.env dist/server.js
+# Volta sozinha se cair (por exemplo, MongoDB fora do ar na hora de subir).
+Restart=always
+RestartSec=5
+# Tempo para fechar conexões antes de o systemd matar o processo.
+TimeoutStopSec=20
+
+# Fotos e cardápios: /var/lib/checkins/media (MEDIA_DIR no .env). O systemd cria a pasta com o dono certo.
+StateDirectory=checkins
+StateDirectoryMode=0750
+
+# Proteções: a API só escreve na pasta de mídia e não enxerga as pastas pessoais.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

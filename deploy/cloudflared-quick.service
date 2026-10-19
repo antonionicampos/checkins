@@ -1,0 +1,20 @@
+# Túnel temporário do Cloudflare (sem domínio): publica a API num endereço https://xxxx.trycloudflare.com.
+# O endereço muda toda vez que este serviço reinicia; serve para testes. Com domínio próprio, use o túnel
+# fixo (cloudflared service install) e desligue este: sudo systemctl disable --now cloudflared-quick
+# Ver o endereço atual:
+#   journalctl -u cloudflared-quick | grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' | tail -n1
+
+[Unit]
+Description=Cloudflare Tunnel temporário para a API do Check-ins
+Wants=network-online.target
+After=network-online.target checkins-api.service
+
+[Service]
+Type=simple
+DynamicUser=true
+ExecStart=/usr/bin/cloudflared tunnel --no-autoupdate --url http://127.0.0.1:3000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

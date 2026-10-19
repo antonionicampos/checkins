@@ -1,0 +1,12 @@
+# Backup diário às 4h. Se a máquina estava desligada nessa hora, roda quando ligar.
+
+[Unit]
+Description=Backup diário do Check-ins
+
+[Timer]
+OnCalendar=*-*-* 04:00:00
+Persistent=true
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target
